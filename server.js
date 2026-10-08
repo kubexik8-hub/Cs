@@ -5,14 +5,19 @@ const crypto = require("crypto");
 
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.PUBLIC_BASE_URL || "";
-
 const DATA_FILE = path.join(__dirname, "data.json");
 
 function loadData() {
   try {
     if (!fs.existsSync(DATA_FILE)) return {};
-    const data = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
-    return data && typeof data === "object" ? data : {};
+
+    const data = JSON.parse(
+      fs.readFileSync(DATA_FILE, "utf8")
+    );
+
+    return data && typeof data === "object"
+      ? data
+      : {};
   } catch {
     return {};
   }
@@ -29,15 +34,13 @@ function saveData(data) {
 const database = loadData();
 
 function json(res, status, data) {
-  const body = JSON.stringify(data);
-
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
     "Access-Control-Allow-Origin": "*"
   });
 
-  res.end(body);
+  res.end(JSON.stringify(data));
 }
 
 function html(res, status, body) {
@@ -96,7 +99,7 @@ function readBody(req) {
     req.on("data", chunk => {
       body += chunk;
 
-      if (body.length > 100_000) {
+      if (body.length > 100000) {
         reject(new Error("Request body is too large."));
         req.destroy();
       }
@@ -115,9 +118,11 @@ function readBody(req) {
 }
 
 function obsPage(widget) {
-  const safeName = escapeHtml(
+  const playerName = escapeHtml(
     widget.playerName || "{twój nick}"
   );
+
+  const token = JSON.stringify(widget.token);
 
   return `
 <!DOCTYPE html>
@@ -148,12 +153,11 @@ body{
   min-height:100%;
   padding:20px;
   border-radius:20px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(12,8,20,.96),
-      rgba(25,18,36,.94)
-    );
+  background:linear-gradient(
+    135deg,
+    rgba(12,8,20,.96),
+    rgba(25,18,36,.94)
+  );
   border:1px solid rgba(255,255,255,.08);
   box-shadow:0 15px 50px rgba(0,0,0,.4);
 }
@@ -275,9 +279,7 @@ body{
 
   <div class="header">
     <div>
-      <div class="name" id="player">
-        ${safeName}
-      </div>
+      <div class="name" id="player">${playerName}</div>
 
       <div class="label">
         OSTATNIE MECZE
@@ -298,7 +300,7 @@ body{
 </div>
 
 <script>
-const widgetToken = ${JSON.stringify(widget.token)};
+const widgetToken = ${token};
 
 function resultClass(result){
   if(result === "W") return "w";
@@ -354,48 +356,59 @@ async function load(){
     const matches = data.matches || [];
 
     if(!matches.length){
-      document.getElementById("matches").innerHTML = `
-        <div class="empty">
-          Widget jest gotowy.
-          Dane meczów pojawią się po podłączeniu źródła Valve.
-        </div>
-      `;
-    }else{
+
       document.getElementById("matches").innerHTML =
-        matches.slice(0,10).map(match => `
-          <div class="match">
+        '<div class="empty">' +
+        'Widget jest gotowy. Dane meczów pojawią się po podłączeniu źródła Valve.' +
+        '</div>';
 
-            <div class="top">
+    }else{
 
-              <div class="result ${resultClass(match.result)}">
-                ${escapeHtml(match.result)}
-              </div>
+      let output = "";
 
-              <div class="map">
-                ${escapeHtml(match.map)}
-              </div>
+      matches.slice(0,10).forEach(function(match){
 
-            </div>
+        output +=
+          '<div class="match">' +
 
-            <div class="score">
-              ${escapeHtml(match.score)}
-            </div>
+            '<div class="top">' +
 
-            <div class="meta">
+              '<div class="result ' +
+              resultClass(match.result) +
+              '">' +
+              escapeHtml(match.result) +
+              '</div>' +
 
-              <span>
-                K ${escapeHtml(match.kills ?? "—")}
-                · D ${escapeHtml(match.deaths ?? "—")}
-              </span>
+              '<div class="map">' +
+              escapeHtml(match.map) +
+              '</div>' +
 
-              <span>
-                ${escapeHtml(formatDate(match.date))}
-              </span>
+            '</div>' +
 
-            </div>
+            '<div class="score">' +
+            escapeHtml(match.score) +
+            '</div>' +
 
-          </div>
-        `).join("");
+            '<div class="meta">' +
+
+              '<span>' +
+              'K ' +
+              escapeHtml(match.kills ?? "—") +
+              ' · D ' +
+              escapeHtml(match.deaths ?? "—") +
+              '</span>' +
+
+              '<span>' +
+              escapeHtml(formatDate(match.date)) +
+              '</span>' +
+
+            '</div>' +
+
+          '</div>';
+      });
+
+      document.getElementById("matches").innerHTML =
+        output;
     }
 
     document.getElementById("status").textContent =
@@ -404,11 +417,10 @@ async function load(){
 
   }catch(error){
 
-    document.getElementById("matches").innerHTML = `
-      <div class="empty">
-        ${escapeHtml(error.message)}
-      </div>
-    `;
+    document.getElementById("matches").innerHTML =
+      '<div class="empty">' +
+      escapeHtml(error.message) +
+      '</div>';
 
     document.getElementById("status").textContent =
       "Błąd pobierania danych";
@@ -417,7 +429,7 @@ async function load(){
 
 load();
 
-setInterval(load, 30000);
+setInterval(load,30000);
 </script>
 
 </body>
@@ -461,35 +473,37 @@ const server = http.createServer(async (req, res) => {
         String(body.shareCode || "").trim();
 
       if(!validSteam64(steamId)){
-        return json(res, 400, {
+        return json(res,400,{
           ok:false,
           error:"Nieprawidłowy Steam64 ID."
         });
       }
 
       if(!steamIdKey){
-        return json(res, 400, {
+        return json(res,400,{
           ok:false,
           error:"Brakuje Steam Authentication Key."
         });
       }
 
       if(!validShareCode(shareCode)){
-        return json(res, 400, {
+        return json(res,400,{
           ok:false,
           error:"Nieprawidłowy Match Share Code."
         });
       }
 
-      let existing = Object.values(database)
-        .find(item => item.steamId === steamId);
+      let existing =
+        Object.values(database).find(
+          item => item.steamId === steamId
+        );
 
       if(!existing){
 
         existing = {
           token:randomToken(),
-          steamId,
-          steamIdKey,
+          steamId:steamId,
+          steamIdKey:steamIdKey,
           firstShareCode:shareCode,
           latestShareCode:shareCode,
           playerName:"",
@@ -512,11 +526,13 @@ const server = http.createServer(async (req, res) => {
       saveData(database);
 
       const widgetUrl =
-        `${publicBase(req)}/obs/${existing.token}`;
+        publicBase(req) +
+        "/obs/" +
+        existing.token;
 
-      return json(res, 200, {
+      return json(res,200,{
         ok:true,
-        widgetUrl,
+        widgetUrl:widgetUrl,
         token:existing.token
       });
     }
@@ -528,24 +544,30 @@ const server = http.createServer(async (req, res) => {
 
       const token =
         decodeURIComponent(
-          url.pathname.substring("/api/widget/".length)
+          url.pathname.substring(
+            "/api/widget/".length
+          )
         );
 
-      const widget = database[token];
+      const widget =
+        database[token];
 
       if(!widget){
-        return json(res, 404, {
+        return json(res,404,{
           ok:false,
           error:"Nie znaleziono widgetu."
         });
       }
 
-      return json(res, 200, {
+      return json(res,200,{
         ok:true,
-        playerName:widget.playerName || "{twój nick}",
-        matches:Array.isArray(widget.matches)
-          ? widget.matches.slice(0,10)
-          : []
+        playerName:
+          widget.playerName ||
+          "{twój nick}",
+        matches:
+          Array.isArray(widget.matches)
+            ? widget.matches.slice(0,10)
+            : []
       });
     }
 
@@ -556,10 +578,13 @@ const server = http.createServer(async (req, res) => {
 
       const token =
         decodeURIComponent(
-          url.pathname.substring("/obs/".length)
+          url.pathname.substring(
+            "/obs/".length
+          )
         );
 
-      const widget = database[token];
+      const widget =
+        database[token];
 
       if(!widget){
         return html(
@@ -582,7 +607,7 @@ const server = http.createServer(async (req, res) => {
     ) {
 
       const file =
-        path.join(__dirname, "index.html");
+        path.join(__dirname,"index.html");
 
       if(!fs.existsSync(file)){
         return html(
@@ -595,30 +620,33 @@ const server = http.createServer(async (req, res) => {
       return html(
         res,
         200,
-        fs.readFileSync(file, "utf8")
+        fs.readFileSync(file,"utf8")
       );
     }
 
-    return json(res, 404, {
+    return json(res,404,{
       ok:false,
       error:"Not found"
     });
 
   }catch(error){
 
-    return json(res, 500, {
+    return json(res,500,{
       ok:false,
       error:
         error?.message ||
         "Wystąpił nieznany błąd."
     });
-
   }
-
 });
 
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(
-    `CS2 OBS Widget działa na porcie ${PORT}`
-  );
-});
+server.listen(
+  PORT,
+  "0.0.0.0",
+  () => {
+    console.log(
+      "CS2 OBS Widget działa na porcie " +
+      PORT
+    );
+  }
+);
