@@ -10,7 +10,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "cs2parser": "^2.0.0",
-    "csgo-sharecode": "^2.2.0"
+    "@laihoe/demoparser2": "0.42.0",
+    "csgo-sharecode": "7.0.1"
   }
 }
