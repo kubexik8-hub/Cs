@@ -85,8 +85,7 @@ function getBaseUrl(req) {
   }
 
   const proto =
-    req.headers["x-forwarded-proto"] ||
-    "https";
+    req.headers["x-forwarded-proto"] || "https";
 
   const host =
     req.headers["x-forwarded-host"] ||
@@ -125,41 +124,29 @@ function deepMerge(target, source) {
   return target;
 }
 
-function startMatch(widget, state) {
-  const map = state.map || {};
-  const player = state.player || {};
+function getPlayer(widget) {
+  const state =
+    widget.lastState || {};
 
-  widget.currentMatch = {
-    id:
-      `${Date.now()}-${randomToken().slice(0, 8)}`,
+  const wanted =
+    String(widget.steamId);
 
-    startedAt:
-      new Date().toISOString(),
-
-    map:
-      map.name || "",
-
-    mode:
-      map.mode || "",
-
-    playerName:
-      player.name || widget.playerName || "",
-
-    steamId:
-      player.steamid ||
-      widget.steamId ||
-      "",
-
-    state: state
-  };
-}
-
-function getCurrentPlayer(widget, state) {
-  const wanted = String(widget.steamId);
+  if (
+    state.allplayers &&
+    state.allplayers[wanted]
+  ) {
+    return {
+      steamid: wanted,
+      ...state.allplayers[wanted]
+    };
+  }
 
   if (
     state.player &&
-    String(state.player.steamid || "") === wanted
+    (
+      !state.player.steamid ||
+      String(state.player.steamid) === wanted
+    )
   ) {
     return state.player;
   }
@@ -167,22 +154,18 @@ function getCurrentPlayer(widget, state) {
   return state.player || {};
 }
 
-function finalizeMatch(widget) {
-  if (!widget.currentMatch) {
-    return null;
-  }
-
+function getLiveData(widget) {
   const state =
-    widget.currentMatch.state || {};
+    widget.lastState || {};
 
   const map =
     state.map || {};
 
   const player =
-    getCurrentPlayer(
-      widget,
-      state
-    );
+    getPlayer(widget);
+
+  const stats =
+    player.match_stats || {};
 
   const team =
     String(
@@ -199,24 +182,126 @@ function finalizeMatch(widget) {
       map.team_t?.score ?? 0
     );
 
-  let myScore = null;
-  let enemyScore = null;
+  let myScore = 0;
+  let enemyScore = 0;
 
   if (team === "CT") {
     myScore = ctScore;
     enemyScore = tScore;
-  }
-
-  if (team === "T") {
+  } else if (team === "T") {
     myScore = tScore;
     enemyScore = ctScore;
+  } else {
+    myScore = ctScore;
+    enemyScore = tScore;
   }
+
+  const kills =
+    Number(stats.kills ?? 0);
+
+  const deaths =
+    Number(stats.deaths ?? 0);
+
+  return {
+    active:
+      Boolean(
+        widget.currentMatch
+      ),
+
+    map:
+      String(
+        map.name || ""
+      )
+        .replace(/^de_/, "")
+        .toUpperCase(),
+
+    mode:
+      map.mode || "",
+
+    phase:
+      map.phase || "",
+
+    round:
+      Number(map.round ?? 0),
+
+    score:
+      `${myScore}:${enemyScore}`,
+
+    playerName:
+      player.name ||
+      widget.playerName ||
+      "{twój nick}",
+
+    steamId:
+      String(
+        player.steamid ||
+        widget.steamId
+      ),
+
+    team,
+
+    kills,
+
+    deaths,
+
+    assists:
+      Number(stats.assists ?? 0),
+
+    mvps:
+      Number(stats.mvps ?? 0),
+
+    points:
+      Number(stats.score ?? 0),
+
+    kd:
+      deaths > 0
+        ? Number(
+            (kills / deaths).toFixed(2)
+          )
+        : kills
+  };
+}
+
+function startMatch(widget) {
+  const live =
+    getLiveData(widget);
+
+  widget.currentMatch = {
+    id:
+      `${Date.now()}-${randomToken().slice(0, 8)}`,
+
+    startedAt:
+      new Date().toISOString(),
+
+    map:
+      live.map,
+
+    playerName:
+      live.playerName,
+
+    steamId:
+      live.steamId
+  };
+}
+
+function finishMatch(widget) {
+  const live =
+    getLiveData(widget);
+
+  if (!widget.currentMatch) {
+    return null;
+  }
+
+  const [myScore, enemyScore] =
+    live.score
+      .split(":")
+      .map(Number);
 
   let result = "?";
 
   if (
-    myScore !== null &&
-    enemyScore !== null
+    Number.isFinite(myScore) &&
+    Number.isFinite(enemyScore)
   ) {
     if (myScore > enemyScore) {
       result = "W";
@@ -227,24 +312,6 @@ function finalizeMatch(widget) {
     }
   }
 
-  const stats =
-    player.match_stats || {};
-
-  const kills =
-    Number(stats.kills ?? 0);
-
-  const deaths =
-    Number(stats.deaths ?? 0);
-
-  const assists =
-    Number(stats.assists ?? 0);
-
-  const mvps =
-    Number(stats.mvps ?? 0);
-
-  const points =
-    Number(stats.score ?? 0);
-
   const match = {
     id:
       widget.currentMatch.id,
@@ -253,60 +320,59 @@ function finalizeMatch(widget) {
       new Date().toISOString(),
 
     playerName:
-      player.name ||
-      widget.currentMatch.playerName ||
-      "{twój nick}",
+      live.playerName,
 
     steamId:
-      String(
-        player.steamid ||
-        widget.steamId
-      ),
+      live.steamId,
 
     map:
-      String(
-        map.name ||
-        widget.currentMatch.map ||
-        ""
-      )
-        .replace(/^de_/, "")
-        .toUpperCase(),
+      live.map,
 
     result,
 
     score:
-      myScore !== null &&
-      enemyScore !== null
-        ? `${myScore}:${enemyScore}`
-        : "—",
+      live.score,
 
-    kills,
-    deaths,
-    assists,
-    mvps,
-    points,
+    kills:
+      live.kills,
+
+    deaths:
+      live.deaths,
+
+    assists:
+      live.assists,
+
+    mvps:
+      live.mvps,
+
+    points:
+      live.points,
 
     kd:
-      deaths > 0
-        ? Number(
-            (
-              kills / deaths
-            ).toFixed(2)
-          )
-        : kills
+      live.kd
   };
 
-  widget.matches.unshift(match);
+  const duplicate =
+    widget.matches.some(
+      item =>
+        item.id === match.id
+    );
 
-  if (widget.matches.length > 100) {
-    widget.matches =
-      widget.matches.slice(0, 100);
+  if (!duplicate) {
+    widget.matches.unshift(match);
   }
 
-  widget.playerName =
-    match.playerName;
+  widget.matches =
+    widget.matches.slice(
+      0,
+      100
+    );
 
-  widget.currentMatch = null;
+  widget.playerName =
+    live.playerName;
+
+  widget.currentMatch =
+    null;
 
   widget.updatedAt =
     new Date().toISOString();
@@ -316,65 +382,55 @@ function finalizeMatch(widget) {
   return match;
 }
 
-function processGsi(widget, state) {
-  const map =
-    state.map || {};
+function processGsi(widget, incoming) {
+  if (!widget.lastState) {
+    widget.lastState = {};
+  }
 
-  const mode =
-    String(
-      map.mode || ""
-    ).toLowerCase();
+  deepMerge(
+    widget.lastState,
+    incoming
+  );
+
+  const map =
+    widget.lastState.map || {};
 
   const phase =
     String(
       map.phase || ""
     ).toLowerCase();
 
-  if (mode !== "competitive") {
-    return {
-      type: "ignored",
-      reason: "not_competitive"
-    };
-  }
+  const mode =
+    String(
+      map.mode || ""
+    ).toLowerCase();
+
+  const live =
+    getLiveData(widget);
 
   if (
+    mode === "competitive" &&
     phase === "live" &&
     !widget.currentMatch
   ) {
-    startMatch(
-      widget,
-      state
-    );
-
-    saveDatabase();
-
-    return {
-      type: "match_started"
-    };
-  }
-
-  if (widget.currentMatch) {
-    deepMerge(
-      widget.currentMatch.state,
-      state
-    );
+    startMatch(widget);
   }
 
   if (
+    mode === "competitive" &&
     phase === "gameover" &&
     widget.currentMatch
   ) {
-    const match =
-      finalizeMatch(widget);
-
     return {
       type: "match_finished",
-      match
+      match:
+        finishMatch(widget)
     };
   }
 
   return {
-    type: "state"
+    type: "state",
+    live
   };
 }
 
@@ -383,23 +439,26 @@ function obsPage(token) {
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+
 <meta charset="UTF-8">
 <meta
   name="viewport"
   content="width=device-width,initial-scale=1"
 >
-<title>OBS Widget</title>
+
+<title>CS2 OBS Widget</title>
 
 <style>
+
 * {
   box-sizing: border-box;
 }
 
 html,
 body {
+  margin: 0;
   width: 100%;
   height: 100%;
-  margin: 0;
   overflow: hidden;
   background: transparent;
   font-family: Arial, sans-serif;
@@ -414,16 +473,19 @@ body {
   background:
     linear-gradient(
       135deg,
-      rgba(11, 7, 18, .96),
-      rgba(25, 17, 37, .94)
+      rgba(11,7,18,.97),
+      rgba(27,18,39,.95)
     );
   border: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 15px 50px rgba(0,0,0,.4);
+  box-shadow:
+    0 15px 50px rgba(0,0,0,.4);
 }
 
 .header {
   display: flex;
+  justify-content: space-between;
   align-items: flex-start;
+  gap: 20px;
 }
 
 .name {
@@ -439,33 +501,84 @@ body {
   letter-spacing: 1.5px;
 }
 
-.matches {
-  margin-top: 18px;
+.live {
+  text-align: right;
+}
+
+.live-label {
+  color: #938ca3;
+  font-size: 9px;
+  letter-spacing: 1px;
+  font-weight: 800;
+}
+
+.live-value {
+  margin-top: 3px;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.stats {
+  margin-top: 15px;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns:
+    1.15fr
+    .8fr
+    .8fr
+    .8fr
+    .8fr
+    .8fr;
+  gap: 7px;
+}
+
+.stat {
+  padding: 9px;
+  border-radius: 11px;
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.055);
+}
+
+.stat-label {
+  color: #777e8b;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.stat-value {
+  margin-top: 3px;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.matches {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns:
+    repeat(5, 1fr);
   gap: 8px;
 }
 
 .empty {
   grid-column: 1 / -1;
-  padding: 20px;
+  padding: 18px;
   border-radius: 13px;
   background: rgba(255,255,255,.04);
   color: #8d859a;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .match {
-  padding: 10px;
   min-width: 0;
+  padding: 10px;
   border-radius: 13px;
   background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.06);
+  border:
+    1px solid
+    rgba(255,255,255,.06);
 }
 
 .top {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 6px;
 }
@@ -492,10 +605,10 @@ body {
 }
 
 .map {
-  max-width: 85px;
+  max-width: 80px;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
   color: #858d9b;
   font-size: 9px;
   font-weight: 800;
@@ -503,26 +616,42 @@ body {
 
 .score {
   margin-top: 5px;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 900;
 }
 
 .meta {
+  margin-top: 5px;
   display: flex;
   justify-content: space-between;
   gap: 5px;
-  margin-top: 5px;
   color: #696f7c;
   font-size: 8px;
 }
 
 .status {
-  margin-top: 9px;
-  text-align: right;
+  margin-top: 8px;
   color: #626976;
   font-size: 8px;
+  text-align: right;
 }
+
+@media(max-width:900px) {
+
+  .stats {
+    grid-template-columns:
+      repeat(3,1fr);
+  }
+
+  .matches {
+    grid-template-columns:
+      repeat(5,1fr);
+  }
+
+}
+
 </style>
+
 </head>
 
 <body>
@@ -530,6 +659,7 @@ body {
 <div class="widget">
 
   <div class="header">
+
     <div>
 
       <div
@@ -540,10 +670,108 @@ body {
       </div>
 
       <div class="label">
-        OSTATNIE MECZE
+        CS2
       </div>
 
     </div>
+
+    <div class="live">
+
+      <div class="live-label">
+        MECZ
+      </div>
+
+      <div
+        class="live-value"
+        id="liveMap"
+      >
+        —
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="stats">
+
+    <div class="stat">
+      <div class="stat-label">
+        WYNIK
+      </div>
+
+      <div
+        class="stat-value"
+        id="score"
+      >
+        —
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">
+        KILLS
+      </div>
+
+      <div
+        class="stat-value"
+        id="kills"
+      >
+        —
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">
+        DEATHS
+      </div>
+
+      <div
+        class="stat-value"
+        id="deaths"
+      >
+        —
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">
+        ASSISTS
+      </div>
+
+      <div
+        class="stat-value"
+        id="assists"
+      >
+        —
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">
+        K/D
+      </div>
+
+      <div
+        class="stat-value"
+        id="kd"
+      >
+        —
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">
+        MVP
+      </div>
+
+      <div
+        class="stat-value"
+        id="mvps"
+      >
+        —
+      </div>
+    </div>
+
   </div>
 
   <div
@@ -551,7 +779,7 @@ body {
     class="matches"
   >
     <div class="empty">
-      Oczekiwanie na pierwszy zakończony mecz...
+      Brak zapisanych meczów.
     </div>
   </div>
 
@@ -559,138 +787,218 @@ body {
     id="status"
     class="status"
   >
-    LIVE
+    Łączenie...
   </div>
 
 </div>
 
 <script>
-const token = ${JSON.stringify(token)};
+
+const token =
+  ${JSON.stringify(token)};
 
 function esc(value) {
+
   return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
 }
 
 function cls(result) {
-  if (result === "W") return "w";
-  if (result === "L") return "l";
-  if (result === "T") return "t";
+
+  if(result === "W")
+    return "w";
+
+  if(result === "L")
+    return "l";
+
+  if(result === "T")
+    return "t";
+
   return "q";
+
 }
 
-function formatDate(value) {
-  if (!value) return "—";
+function date(value) {
 
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
+  if(!value)
     return "—";
-  }
 
-  return date.toLocaleDateString(
+  const d =
+    new Date(value);
+
+  if(
+    Number.isNaN(
+      d.getTime()
+    )
+  )
+    return "—";
+
+  return d.toLocaleDateString(
     "pl-PL",
     {
-      day: "2-digit",
-      month: "2-digit"
+      day:"2-digit",
+      month:"2-digit"
     }
   );
+
+}
+
+function renderLive(data) {
+
+  const live =
+    data.live || {};
+
+  document.getElementById(
+    "player"
+  ).textContent =
+    live.playerName ||
+    data.playerName ||
+    "{twój nick}";
+
+  document.getElementById(
+    "liveMap"
+  ).textContent =
+    live.map ||
+    "—";
+
+  document.getElementById(
+    "score"
+  ).textContent =
+    live.score ||
+    "—";
+
+  document.getElementById(
+    "kills"
+  ).textContent =
+    live.kills ?? "—";
+
+  document.getElementById(
+    "deaths"
+  ).textContent =
+    live.deaths ?? "—";
+
+  document.getElementById(
+    "assists"
+  ).textContent =
+    live.assists ?? "—";
+
+  document.getElementById(
+    "kd"
+  ).textContent =
+    live.kd ?? "—";
+
+  document.getElementById(
+    "mvps"
+  ).textContent =
+    live.mvps ?? "—";
+
+}
+
+function renderMatches(matches) {
+
+  if(!matches.length) {
+
+    document.getElementById(
+      "matches"
+    ).innerHTML =
+      '<div class="empty">' +
+      'Historia zacznie się zapisywać od meczów rozegranych po uruchomieniu widgetu.' +
+      '</div>';
+
+    return;
+  }
+
+  let output = "";
+
+  matches
+    .slice(0,10)
+    .forEach(match => {
+
+      output +=
+        '<div class="match">' +
+
+          '<div class="top">' +
+
+            '<div class="result ' +
+            cls(match.result) +
+            '">' +
+            esc(match.result) +
+            '</div>' +
+
+            '<div class="map">' +
+            esc(match.map) +
+            '</div>' +
+
+          '</div>' +
+
+          '<div class="score">' +
+          esc(match.score) +
+          '</div>' +
+
+          '<div class="meta">' +
+
+            '<span>' +
+            'K ' +
+            esc(match.kills) +
+            ' · D ' +
+            esc(match.deaths) +
+            ' · K/D ' +
+            esc(match.kd) +
+            '</span>' +
+
+            '<span>' +
+            esc(date(match.date)) +
+            '</span>' +
+
+          '</div>' +
+
+        '</div>';
+
+    });
+
+  document.getElementById(
+    "matches"
+  ).innerHTML =
+    output;
+
 }
 
 async function load() {
+
   try {
 
-    const response = await fetch(
-      "/api/widget/" +
-      encodeURIComponent(token),
-      {
-        cache: "no-store"
-      }
-    );
+    const response =
+      await fetch(
+        "/api/widget/" +
+        encodeURIComponent(token),
+        {
+          cache:"no-store"
+        }
+      );
 
     const data =
       await response.json();
 
-    if (!response.ok || !data.ok) {
+    if(
+      !response.ok ||
+      !data.ok
+    ) {
       throw new Error(
         data.error ||
-        "Błąd pobierania danych"
+        "Błąd"
       );
     }
 
-    document.getElementById(
-      "player"
-    ).textContent =
-      data.playerName ||
-      "{twój nick}";
+    renderLive(data);
 
-    const matches =
-      data.matches || [];
-
-    if (!matches.length) {
-
-      document.getElementById(
-        "matches"
-      ).innerHTML =
-        '<div class="empty">' +
-        'Oczekiwanie na pierwszy zakończony mecz...' +
-        '</div>';
-
-    } else {
-
-      let output = "";
-
-      matches
-        .slice(0, 10)
-        .forEach(match => {
-
-          output +=
-            '<div class="match">' +
-
-              '<div class="top">' +
-
-                '<div class="result ' +
-                cls(match.result) +
-                '">' +
-                esc(match.result) +
-                '</div>' +
-
-                '<div class="map">' +
-                esc(match.map) +
-                '</div>' +
-
-              '</div>' +
-
-              '<div class="score">' +
-              esc(match.score) +
-              '</div>' +
-
-              '<div class="meta">' +
-
-                '<span>' +
-                'K ' +
-                esc(match.kills) +
-                ' · D ' +
-                esc(match.deaths) +
-                '</span>' +
-
-                '<span>' +
-                esc(formatDate(match.date)) +
-                '</span>' +
-
-              '</div>' +
-
-            '</div>';
-        });
-
-      document.getElementById(
-        "matches"
-      ).innerHTML = output;
-    }
+    renderMatches(
+      data.matches || []
+    );
 
     document.getElementById(
       "status"
@@ -700,19 +1008,23 @@ async function load() {
         .toLocaleTimeString("pl-PL");
 
   } catch {
+
     document.getElementById(
       "status"
     ).textContent =
-      "BŁĄD";
+      "BRAK DANYCH";
+
   }
+
 }
 
 load();
 
 setInterval(
   load,
-  10000
+  2000
 );
+
 </script>
 
 </body>
@@ -736,21 +1048,24 @@ const server =
             )
           );
 
-        if (
+        if(
           req.method === "GET" &&
           url.pathname === "/api/health"
         ) {
+
           return json(
             res,
             200,
             {
-              ok: true,
-              service: "CS2 OBS Widget"
+              ok:true,
+              service:
+                "CS2 OBS Widget"
             }
           );
+
         }
 
-        if (
+        if(
           req.method === "POST" &&
           url.pathname === "/api/setup"
         ) {
@@ -763,46 +1078,58 @@ const server =
               body.steamId || ""
             ).trim();
 
-          if (!validSteam64(steamId)) {
+          if(
+            !validSteam64(
+              steamId
+            )
+          ) {
+
             return json(
               res,
               400,
               {
-                ok: false,
+                ok:false,
                 error:
                   "Steam64 ID musi mieć 17 cyfr."
               }
             );
+
           }
 
           let widget =
-            Object.values(database)
-              .find(
-                item =>
-                  item.steamId === steamId
-              );
+            Object.values(
+              database
+            ).find(
+              item =>
+                item.steamId ===
+                steamId
+            );
 
-          if (!widget) {
+          if(!widget) {
 
             widget = {
+
               token:
                 randomToken(),
 
               steamId,
 
-              playerName:
-                "",
+              playerName:"",
 
-              matches: [],
+              matches:[],
 
-              currentMatch:
-                null,
+              currentMatch:null,
+
+              lastState:{},
 
               createdAt:
-                new Date().toISOString(),
+                new Date()
+                  .toISOString(),
 
               updatedAt:
-                new Date().toISOString()
+                new Date()
+                  .toISOString()
+
             };
 
             database[
@@ -813,26 +1140,28 @@ const server =
 
           saveDatabase();
 
-          const widgetUrl =
-            getBaseUrl(req) +
-            "/obs/" +
-            widget.token;
-
           return json(
             res,
             200,
             {
-              ok: true,
-              widgetUrl,
+              ok:true,
+
+              widgetUrl:
+                getBaseUrl(req) +
+                "/obs/" +
+                widget.token,
+
               token:
                 widget.token,
+
               gsiToken:
                 widget.token
             }
           );
+
         }
 
-        if (
+        if(
           req.method === "POST" &&
           url.pathname.startsWith(
             "/api/gsi/"
@@ -849,16 +1178,18 @@ const server =
           const widget =
             database[token];
 
-          if (!widget) {
+          if(!widget) {
+
             return json(
               res,
               404,
               {
-                ok: false,
+                ok:false,
                 error:
                   "Widget nie istnieje."
               }
             );
+
           }
 
           const state =
@@ -869,52 +1200,65 @@ const server =
               state.auth?.token || ""
             );
 
-          if (
+          if(
             authToken !== token
           ) {
+
             return json(
               res,
               401,
               {
-                ok: false,
+                ok:false,
                 error:
                   "Nieprawidłowy token GSI."
               }
             );
+
           }
 
+          if(!widget.lastState) {
+            widget.lastState = {};
+          }
+
+          deepMerge(
+            widget.lastState,
+            state
+          );
+
           const player =
-            state.player || {};
+            getPlayer(widget);
 
-          const steamId =
+          if(
+            player.steamid &&
             String(
-              player.steamid || ""
-            );
-
-          if (
-            steamId &&
-            steamId !==
-              String(widget.steamId)
+              player.steamid
+            ) !==
+            String(
+              widget.steamId
+            )
           ) {
+
             return json(
               res,
               403,
               {
-                ok: false,
+                ok:false,
                 error:
-                  "Steam64 ID nie pasuje do widgetu."
+                  "Steam64 ID nie pasuje."
               }
             );
+
           }
 
           const result =
             processGsi(
               widget,
-              state
+              {}
             );
 
           widget.updatedAt =
-            new Date().toISOString();
+            new Date()
+              .toISOString();
 
           saveDatabase();
 
@@ -922,13 +1266,14 @@ const server =
             res,
             200,
             {
-              ok: true,
+              ok:true,
               result
             }
           );
+
         }
 
-        if (
+        if(
           req.method === "GET" &&
           url.pathname.startsWith(
             "/api/widget/"
@@ -945,39 +1290,50 @@ const server =
           const widget =
             database[token];
 
-          if (!widget) {
+          if(!widget) {
+
             return json(
               res,
               404,
               {
-                ok: false,
+                ok:false,
                 error:
                   "Widget nie istnieje."
               }
             );
+
           }
 
           return json(
             res,
             200,
             {
-              ok: true,
+              ok:true,
 
               playerName:
                 widget.playerName ||
-                "{twój nick}",
+                getLiveData(
+                  widget
+                ).playerName,
+
+              live:
+                getLiveData(
+                  widget
+                ),
 
               matches:
                 Array.isArray(
                   widget.matches
                 )
-                  ? widget.matches.slice(0, 10)
+                  ? widget.matches
+                      .slice(0,10)
                   : []
             }
           );
+
         }
 
-        if (
+        if(
           req.method === "GET" &&
           url.pathname.startsWith(
             "/obs/"
@@ -991,12 +1347,16 @@ const server =
               )
             );
 
-          if (!database[token]) {
+          if(
+            !database[token]
+          ) {
+
             return html(
               res,
               404,
               "<h1>Widget nie istnieje.</h1>"
             );
+
           }
 
           return html(
@@ -1004,9 +1364,10 @@ const server =
             200,
             obsPage(token)
           );
+
         }
 
-        if (
+        if(
           req.method === "GET" &&
           url.pathname === "/"
         ) {
@@ -1017,12 +1378,16 @@ const server =
               "index.html"
             );
 
-          if (!fs.existsSync(file)) {
+          if(
+            !fs.existsSync(file)
+          ) {
+
             return html(
               res,
               404,
               "<h1>Brak index.html</h1>"
             );
+
           }
 
           return html(
@@ -1033,30 +1398,37 @@ const server =
               "utf8"
             )
           );
+
         }
 
         return json(
           res,
           404,
           {
-            ok: false,
-            error: "Not found"
+            ok:false,
+            error:"Not found"
           }
         );
 
-      } catch (error) {
+      } catch(error) {
+
+        console.error(
+          error
+        );
 
         return json(
           res,
           500,
           {
-            ok: false,
+            ok:false,
             error:
               error?.message ||
               "Server error"
           }
         );
+
       }
+
     }
   );
 
@@ -1064,9 +1436,11 @@ server.listen(
   PORT,
   "0.0.0.0",
   () => {
+
     console.log(
       "CS2 OBS Widget działa na porcie " +
       PORT
     );
+
   }
 );
