@@ -1,0 +1,724 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OBS Widget</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #08060d;
+      --panel: rgba(18, 14, 28, 0.82);
+      --border: rgba(255,255,255,.08);
+      --text: #f5f2fa;
+      --muted: #938ca3;
+      --accent: #8b5cf6;
+      --accent2: #c084fc;
+      --green: #22c55e;
+      --danger: #ff6262;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(139,92,246,.22), transparent 32%),
+        radial-gradient(circle at 85% 80%, rgba(192,132,252,.12), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 920px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(139,92,246,.28);
+      background: rgba(139,92,246,.10);
+      color: var(--accent2);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+    }
+
+    h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(34px, 6vw, 58px);
+      line-height: .98;
+      font-weight: 950;
+      letter-spacing: -2px;
+    }
+
+    .gradient {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      max-width: 650px;
+      margin: auto;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      backdrop-filter: blur(22px);
+      box-shadow: 0 25px 80px rgba(0,0,0,.4);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .section-description {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      margin-bottom: 17px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #cdd2da;
+      font-weight: 800;
+      letter-spacing: .3px;
+    }
+
+    input {
+      width: 100%;
+      height: 50px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      outline: none;
+      background: rgba(0,0,0,.28);
+      color: white;
+      padding: 0 15px;
+      font-size: 14px;
+      transition: .2s;
+    }
+
+    input:focus {
+      border-color: rgba(139,92,246,.55);
+      box-shadow: 0 0 0 3px rgba(139,92,246,.10);
+    }
+
+    input::placeholder {
+      color: #565e6d;
+    }
+
+    .hint {
+      margin-top: 7px;
+      color: #69717f;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    button {
+      width: 100%;
+      height: 54px;
+      border: 0;
+      border-radius: 14px;
+      cursor: pointer;
+      color: white;
+      font-size: 14px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #6d28d9, var(--accent), #c084fc);
+      transition: transform .15s, opacity .15s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+      transform: none;
+    }
+
+    .message {
+      display: none;
+      margin-top: 16px;
+      padding: 13px 15px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .message.error {
+      display: block;
+      color: #ff9696;
+      background: rgba(255,70,70,.08);
+      border: 1px solid rgba(255,70,70,.16);
+    }
+
+    .message.success {
+      display: block;
+      color: #8bf2ac;
+      background: rgba(22,206,82,.08);
+      border: 1px solid rgba(22,206,82,.16);
+    }
+
+    .result {
+      display: none;
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 17px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result-title {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 800;
+    }
+
+    .url-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .url {
+      flex: 1;
+      min-width: 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 13px;
+      border-radius: 11px;
+      background: rgba(0,0,0,.28);
+      border: 1px solid var(--border);
+      color: #dce1e8;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copy {
+      width: auto;
+      min-width: 95px;
+      height: 48px;
+      padding: 0 15px;
+      background: rgba(139,92,246,.12);
+      border: 1px solid rgba(139,92,246,.24);
+      color: var(--accent2);
+    }
+
+    .obs-info {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(139,92,246,.08);
+      border: 1px solid rgba(139,92,246,.16);
+      color: #b9bec8;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .preview {
+      margin-top: 22px;
+    }
+
+    .preview-title {
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .widget-preview {
+      min-height: 180px;
+      border-radius: 17px;
+      border: 1px solid rgba(255,255,255,.07);
+      background: linear-gradient(135deg, #0d0a14, #191321);
+      padding: 17px;
+    }
+
+    .widget-top {
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+
+    .widget-name {
+      font-size: 22px;
+      font-weight: 950;
+      color: #f4efff;
+    }
+
+    .results {
+      margin-top: 16px;
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .result-pill {
+      width: 27px;
+      height: 27px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .w {
+      color: #5ced89;
+      background: rgba(22,206,82,.12);
+    }
+
+    .l {
+      color: #ff7676;
+      background: rgba(255,72,72,.12);
+    }
+
+    .m {
+      color: #ffd75d;
+      background: rgba(255,205,53,.12);
+    }
+
+    .match-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .match {
+      padding: 9px;
+      border-radius: 9px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.045);
+    }
+
+    .match-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 5px;
+    }
+
+    .match-result {
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .match-map {
+      color: #838b98;
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .match-score {
+      margin-top: 4px;
+      color: white;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .match-meta {
+      margin-top: 3px;
+      color: #646c79;
+      font-size: 7px;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 15px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .match-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .url-row {
+        flex-direction: column;
+      }
+
+      .copy {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="hero">
+      <div class="badge">OBS WIDGET</div>
+
+      <h1>
+        CS2 <span class="gradient">OBS Widget</span>
+      </h1>
+
+      <div class="subtitle">
+        Wygeneruj własny link do Browser Source w OBS
+        i pokazuj na transmisji swoje ostatnie mecze CS2.
+      </div>
+    </div>
+
+    <div class="card">
+
+      <div class="section-title">
+        Utwórz swój widget
+      </div>
+
+      <div class="section-description">
+        Dane użytkownika zostaną zapisane po stronie serwera.
+        Hasło Steam nie jest tutaj potrzebne.
+      </div>
+
+      <form id="setupForm">
+
+        <div class="field">
+          <label for="steamId">
+            STEAM64 ID
+          </label>
+
+          <input
+            id="steamId"
+            name="steamId"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="7656119XXXXXXXXXX"
+            required
+          >
+
+          <div class="hint">
+            Twój 17-cyfrowy Steam64 ID.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="steamIdKey">
+            STEAM AUTHENTICATION KEY
+          </label>
+
+          <input
+            id="steamIdKey"
+            name="steamIdKey"
+            type="password"
+            autocomplete="off"
+            placeholder="Wklej authentication key"
+            required
+          >
+
+          <div class="hint">
+            To nie jest hasło do Steam i nie będzie wyświetlane
+            w Twoim linku OBS.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="shareCode">
+            PIERWSZY MATCH SHARE CODE
+          </label>
+
+          <input
+            id="shareCode"
+            name="shareCode"
+            type="text"
+            autocomplete="off"
+            placeholder="CSGO-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+            required
+          >
+
+          <div class="hint">
+            Wklej pierwszy kod udostępniania meczu,
+            od którego mamy zacząć pobierać historię.
+          </div>
+        </div>
+
+        <button id="submitButton" type="submit">
+          GENERUJ LINK DO OBS
+        </button>
+
+      </form>
+
+      <div id="message" class="message"></div>
+
+      <div id="result" class="result">
+
+        <div class="result-title">
+          TWÓJ LINK OBS
+        </div>
+
+        <div class="url-row">
+          <div id="widgetUrl" class="url"></div>
+
+          <button id="copyButton" class="copy" type="button">
+            KOPIUJ
+          </button>
+        </div>
+
+        <div class="obs-info">
+          W OBS wybierz:
+          <b>Źródła → Przeglądarka → URL</b>
+          i wklej powyższy adres.
+          Polecany rozmiar: <b>1280 × 300</b>.
+        </div>
+
+      </div>
+
+      <div class="preview">
+
+        <div class="preview-title">
+          PODGLĄD WIDGETU
+        </div>
+
+        <div class="widget-preview">
+
+          <div class="widget-top">
+            <div class="widget-name">
+              {twój nick}
+            </div>
+          </div>
+
+          <div class="results">
+            <div class="result-pill w">W</div>
+            <div class="result-pill w">W</div>
+            <div class="result-pill l">L</div>
+            <div class="result-pill w">W</div>
+            <div class="result-pill w">W</div>
+            <div class="result-pill l">L</div>
+            <div class="result-pill w">W</div>
+            <div class="result-pill w">W</div>
+            <div class="result-pill w">W</div>
+            <div class="result-pill l">L</div>
+          </div>
+
+          <div class="match-grid">
+
+            <div class="match">
+              <div class="match-line">
+                <div class="match-result w">W</div>
+                <div class="match-map">MIRAGE</div>
+              </div>
+              <div class="match-score">13:8</div>
+              <div class="match-meta">K/D 1.32 · 08.10</div>
+            </div>
+
+            <div class="match">
+              <div class="match-line">
+                <div class="match-result w">W</div>
+                <div class="match-map">NUKE</div>
+              </div>
+              <div class="match-score">13:10</div>
+              <div class="match-meta">K/D 1.21 · 08.10</div>
+            </div>
+
+            <div class="match">
+              <div class="match-line">
+                <div class="match-result l">L</div>
+                <div class="match-map">INFERNO</div>
+              </div>
+              <div class="match-score">9:13</div>
+              <div class="match-meta">K/D 0.91 · 07.10</div>
+            </div>
+
+            <div class="match">
+              <div class="match-line">
+                <div class="match-result w">W</div>
+                <div class="match-map">DUST2</div>
+              </div>
+              <div class="match-score">13:7</div>
+              <div class="match-meta">K/D 1.44 · 07.10</div>
+            </div>
+
+            <div class="match">
+              <div class="match-line">
+                <div class="match-result w">W</div>
+                <div class="match-map">ANCIENT</div>
+              </div>
+              <div class="match-score">13:11</div>
+              <div class="match-meta">K/D 1.18 · 06.10</div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const form = document.getElementById("setupForm");
+    const button = document.getElementById("submitButton");
+    const message = document.getElementById("message");
+    const result = document.getElementById("result");
+    const widgetUrl = document.getElementById("widgetUrl");
+    const copyButton = document.getElementById("copyButton");
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "message " + type;
+    }
+
+    function validSteam64(value) {
+      return /^7656119\d{10}$/.test(value);
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const steamId = document.getElementById("steamId").value.trim();
+      const steamIdKey = document.getElementById("steamIdKey").value.trim();
+      const shareCode = document.getElementById("shareCode").value.trim();
+
+      result.classList.remove("show");
+      message.className = "message";
+
+      if (!validSteam64(steamId)) {
+        showMessage(
+          "Steam64 ID musi zawierać dokładnie 17 cyfr.",
+          "error"
+        );
+        return;
+      }
+
+      if (!steamIdKey) {
+        showMessage(
+          "Wpisz Steam Authentication Key.",
+          "error"
+        );
+        return;
+      }
+
+      if (!shareCode.startsWith("CSGO-")) {
+        showMessage(
+          "Match Share Code powinien zaczynać się od CSGO-.",
+          "error"
+        );
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "GENEROWANIE...";
+
+      try {
+        const response = await fetch("/api/setup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            steamId,
+            steamIdKey,
+            shareCode
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+          throw new Error(
+            data.error || "Nie udało się utworzyć widgetu."
+          );
+        }
+
+        widgetUrl.textContent = data.widgetUrl;
+        result.classList.add("show");
+
+        showMessage(
+          "Widget został utworzony.",
+          "success"
+        );
+
+      } catch (error) {
+        showMessage(
+          error.message || "Wystąpił błąd.",
+          "error"
+        );
+      } finally {
+        button.disabled = false;
+        button.textContent = "GENERUJ LINK DO OBS";
+      }
+    });
+
+    copyButton.addEventListener("click", async () => {
+      const url = widgetUrl.textContent.trim();
+
+      if (!url) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(url);
+
+        copyButton.textContent = "SKOPIOWANO";
+
+        setTimeout(() => {
+          copyButton.textContent = "KOPIUJ";
+        }, 1500);
+
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = url;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+
+        copyButton.textContent = "SKOPIOWANO";
+
+        setTimeout(() => {
+          copyButton.textContent = "KOPIUJ";
+        }, 1500);
+      }
+    });
+  </script>
+
+</body>
+</html>
+
