@@ -1,0 +1,12 @@
+{
+  "name": "cs2-obs-widget",
+  "version": "1.0.0",
+  "description": "CS2 OBS Competitive Widget",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
