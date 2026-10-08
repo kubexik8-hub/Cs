@@ -7,6 +7,10 @@
     "start": "node server.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
+  },
+  "dependencies": {
+    "cs2parser": "^2.0.0",
+    "csgo-sharecode": "^2.2.0"
   }
 }
