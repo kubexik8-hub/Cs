@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -19,8 +18,7 @@
       --muted: #938ca3;
       --accent: #8b5cf6;
       --accent2: #c084fc;
-      --green: #22c55e;
-      --danger: #ff6262;
+      --accent3: #6d28d9;
     }
 
     body {
@@ -105,7 +103,7 @@
     }
 
     .field {
-      margin-bottom: 17px;
+      margin-bottom: 19px;
     }
 
     label {
@@ -140,10 +138,31 @@
     }
 
     .hint {
-      margin-top: 7px;
+      margin-top: 8px;
       color: #69717f;
       font-size: 11px;
-      line-height: 1.5;
+      line-height: 1.55;
+    }
+
+    .help-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 6px;
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 800;
+      transition: .15s;
+    }
+
+    .help-link:hover {
+      color: white;
+    }
+
+    .help-link::after {
+      content: "↗";
+      font-size: 10px;
     }
 
     button {
@@ -155,7 +174,12 @@
       color: white;
       font-size: 14px;
       font-weight: 900;
-      background: linear-gradient(90deg, #6d28d9, var(--accent), #c084fc);
+      background: linear-gradient(
+        90deg,
+        var(--accent3),
+        var(--accent),
+        var(--accent2)
+      );
       transition: transform .15s, opacity .15s;
     }
 
@@ -314,11 +338,6 @@
       background: rgba(255,72,72,.12);
     }
 
-    .m {
-      color: #ffd75d;
-      background: rgba(255,205,53,.12);
-    }
-
     .match-grid {
       margin-top: 12px;
       display: grid;
@@ -418,6 +437,7 @@
       <form id="setupForm">
 
         <div class="field">
+
           <label for="steamId">
             STEAM64 ID
           </label>
@@ -435,9 +455,11 @@
           <div class="hint">
             Twój 17-cyfrowy Steam64 ID.
           </div>
+
         </div>
 
         <div class="field">
+
           <label for="steamIdKey">
             STEAM AUTHENTICATION KEY
           </label>
@@ -452,12 +474,23 @@
           >
 
           <div class="hint">
-            To nie jest hasło do Steam i nie będzie wyświetlane
-            w Twoim linku OBS.
+            To nie jest hasło do Steam.
+            Klucz znajduje się na stronie danych Counter-Strike.
           </div>
+
+          <a
+            class="help-link"
+            href="https://steamcommunity.com/my/gcpd/730/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Otwórz stronę z Authentication Key
+          </a>
+
         </div>
 
         <div class="field">
+
           <label for="shareCode">
             PIERWSZY MATCH SHARE CODE
           </label>
@@ -472,9 +505,19 @@
           >
 
           <div class="hint">
-            Wklej pierwszy kod udostępniania meczu,
-            od którego mamy zacząć pobierać historię.
+            W CS2 otwórz swoje mecze, wybierz mecz
+            i użyj przycisku Share / Copy Match Code.
           </div>
+
+          <a
+            class="help-link"
+            href="https://steamcommunity.com/app/730/discussions/0/841754922594726503/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Jak znaleźć Match Share Code
+          </a>
+
         </div>
 
         <button id="submitButton" type="submit">
@@ -492,11 +535,20 @@
         </div>
 
         <div class="url-row">
-          <div id="widgetUrl" class="url"></div>
 
-          <button id="copyButton" class="copy" type="button">
+          <div
+            id="widgetUrl"
+            class="url"
+          ></div>
+
+          <button
+            id="copyButton"
+            class="copy"
+            type="button"
+          >
             KOPIUJ
           </button>
+
         </div>
 
         <div class="obs-info">
@@ -523,6 +575,7 @@
           </div>
 
           <div class="results">
+
             <div class="result-pill w">W</div>
             <div class="result-pill w">W</div>
             <div class="result-pill l">L</div>
@@ -533,6 +586,7 @@
             <div class="result-pill w">W</div>
             <div class="result-pill w">W</div>
             <div class="result-pill l">L</div>
+
           </div>
 
           <div class="match-grid">
@@ -612,9 +666,14 @@
     form.addEventListener("submit", async event => {
       event.preventDefault();
 
-      const steamId = document.getElementById("steamId").value.trim();
-      const steamIdKey = document.getElementById("steamIdKey").value.trim();
-      const shareCode = document.getElementById("shareCode").value.trim();
+      const steamId =
+        document.getElementById("steamId").value.trim();
+
+      const steamIdKey =
+        document.getElementById("steamIdKey").value.trim();
+
+      const shareCode =
+        document.getElementById("shareCode").value.trim();
 
       result.classList.remove("show");
       message.className = "message";
@@ -647,11 +706,14 @@
       button.textContent = "GENEROWANIE...";
 
       try {
+
         const response = await fetch("/api/setup", {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json"
           },
+
           body: JSON.stringify({
             steamId,
             steamIdKey,
@@ -663,11 +725,14 @@
 
         if (!response.ok || !data.ok) {
           throw new Error(
-            data.error || "Nie udało się utworzyć widgetu."
+            data.error ||
+            "Nie udało się utworzyć widgetu."
           );
         }
 
-        widgetUrl.textContent = data.widgetUrl;
+        widgetUrl.textContent =
+          data.widgetUrl;
+
         result.classList.add("show");
 
         showMessage(
@@ -676,49 +741,68 @@
         );
 
       } catch (error) {
+
         showMessage(
-          error.message || "Wystąpił błąd.",
+          error.message ||
+          "Wystąpił błąd.",
           "error"
         );
+
       } finally {
+
         button.disabled = false;
-        button.textContent = "GENERUJ LINK DO OBS";
+        button.textContent =
+          "GENERUJ LINK DO OBS";
+
       }
     });
 
     copyButton.addEventListener("click", async () => {
-      const url = widgetUrl.textContent.trim();
 
-      if (!url) {
-        return;
-      }
+      const url =
+        widgetUrl.textContent.trim();
+
+      if (!url) return;
 
       try {
+
         await navigator.clipboard.writeText(url);
 
-        copyButton.textContent = "SKOPIOWANO";
+        copyButton.textContent =
+          "SKOPIOWANO";
 
         setTimeout(() => {
-          copyButton.textContent = "KOPIUJ";
+          copyButton.textContent =
+            "KOPIUJ";
         }, 1500);
 
       } catch {
-        const area = document.createElement("textarea");
+
+        const area =
+          document.createElement("textarea");
+
         area.value = url;
+
         document.body.appendChild(area);
+
         area.select();
+
         document.execCommand("copy");
+
         area.remove();
 
-        copyButton.textContent = "SKOPIOWANO";
+        copyButton.textContent =
+          "SKOPIOWANO";
 
         setTimeout(() => {
-          copyButton.textContent = "KOPIUJ";
+          copyButton.textContent =
+            "KOPIUJ";
         }, 1500);
+
       }
+
     });
   </script>
 
 </body>
 </html>
-
