@@ -439,594 +439,204 @@ function obsPage(token) {
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-
-<meta charset="UTF-8">
-<meta
-  name="viewport"
-  content="width=device-width,initial-scale=1"
->
-
-<title>CS2 OBS Widget</title>
-
-<style>
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: transparent;
-  font-family: Arial, sans-serif;
-  color: white;
-}
-
-.widget {
-  width: 100%;
-  min-height: 100%;
-  padding: 20px;
-  border-radius: 20px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(11,7,18,.97),
-      rgba(27,18,39,.95)
-    );
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow:
-    0 15px 50px rgba(0,0,0,.4);
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-}
-
-.name {
-  font-size: 27px;
-  font-weight: 950;
-}
-
-.label {
-  margin-top: 4px;
-  color: #938ca3;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-}
-
-.live {
-  text-align: right;
-}
-
-.live-label {
-  color: #938ca3;
-  font-size: 9px;
-  letter-spacing: 1px;
-  font-weight: 800;
-}
-
-.live-value {
-  margin-top: 3px;
-  font-size: 16px;
-  font-weight: 950;
-}
-
-.stats {
-  margin-top: 15px;
-  display: grid;
-  grid-template-columns:
-    1.15fr
-    .8fr
-    .8fr
-    .8fr
-    .8fr
-    .8fr;
-  gap: 7px;
-}
-
-.stat {
-  padding: 9px;
-  border-radius: 11px;
-  background: rgba(255,255,255,.045);
-  border: 1px solid rgba(255,255,255,.055);
-}
-
-.stat-label {
-  color: #777e8b;
-  font-size: 8px;
-  font-weight: 800;
-}
-
-.stat-value {
-  margin-top: 3px;
-  font-size: 16px;
-  font-weight: 950;
-}
-
-.matches {
-  margin-top: 12px;
-  display: grid;
-  grid-template-columns:
-    repeat(5, 1fr);
-  gap: 8px;
-}
-
-.empty {
-  grid-column: 1 / -1;
-  padding: 18px;
-  border-radius: 13px;
-  background: rgba(255,255,255,.04);
-  color: #8d859a;
-  font-size: 11px;
-}
-
-.match {
-  min-width: 0;
-  padding: 10px;
-  border-radius: 13px;
-  background: rgba(255,255,255,.04);
-  border:
-    1px solid
-    rgba(255,255,255,.06);
-}
-
-.top {
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.result {
-  font-size: 18px;
-  font-weight: 950;
-}
-
-.w {
-  color: #5ced89;
-}
-
-.l {
-  color: #ff7777;
-}
-
-.t {
-  color: #ffd75d;
-}
-
-.q {
-  color: #a0a7b3;
-}
-
-.map {
-  max-width: 80px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #858d9b;
-  font-size: 9px;
-  font-weight: 800;
-}
-
-.score {
-  margin-top: 5px;
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.meta {
-  margin-top: 5px;
-  display: flex;
-  justify-content: space-between;
-  gap: 5px;
-  color: #696f7c;
-  font-size: 8px;
-}
-
-.status {
-  margin-top: 8px;
-  color: #626976;
-  font-size: 8px;
-  text-align: right;
-}
-
-@media(max-width:900px) {
-
-  .stats {
-    grid-template-columns:
-      repeat(3,1fr);
-  }
-
-  .matches {
-    grid-template-columns:
-      repeat(5,1fr);
-  }
-
-}
-
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CS2 OBS Widget</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: Inter, Arial, sans-serif;
+      color: white;
+    }
+    .widget {
+      width: 100%;
+      min-height: 100%;
+      padding: 17px;
+      border-radius: 17px;
+      border: 1px solid rgba(255,255,255,.07);
+      background: linear-gradient(135deg,#0d0a14,#191321);
+    }
+    .widget-name {
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 950;
+      color: #f4efff;
+      overflow-wrap: anywhere;
+    }
+    .results {
+      margin-top: 16px;
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .result-pill {
+      width: 27px;
+      height: 27px;
+      flex: 0 0 27px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .w { color: #5ced89; background: rgba(22,206,82,.12); }
+    .l { color: #ff7676; background: rgba(255,72,72,.12); }
+    .t { color: #ffd75d; background: rgba(255,215,93,.12); }
+    .q { color: #9ca3af; background: rgba(156,163,175,.10); }
+    .match-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(5,minmax(0,1fr));
+      gap: 6px;
+    }
+    .match {
+      min-width: 0;
+      padding: 9px;
+      border-radius: 9px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.045);
+    }
+    .match-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 5px;
+    }
+    .match-result {
+      font-size: 13px;
+      line-height: 1.2;
+      font-weight: 950;
+    }
+    .match-map {
+      min-width: 0;
+      color: #838b98;
+      font-size: 8px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .match-score {
+      margin-top: 4px;
+      color: white;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .match-meta {
+      margin-top: 3px;
+      color: #646c79;
+      font-size: 7px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .empty {
+      grid-column: 1/-1;
+      padding: 14px;
+      border-radius: 9px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.045);
+      color: #838b98;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    @media(max-width:700px) {
+      .match-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+  </style>
 </head>
-
 <body>
-
-<div class="widget">
-
-  <div class="header">
-
-    <div>
-
-      <div
-        class="name"
-        id="player"
-      >
-        {twój nick}
-      </div>
-
-      <div class="label">
-        CS2
-      </div>
-
-    </div>
-
-    <div class="live">
-
-      <div class="live-label">
-        MECZ
-      </div>
-
-      <div
-        class="live-value"
-        id="liveMap"
-      >
-        —
-      </div>
-
-    </div>
-
-  </div>
-
-  <div class="stats">
-
-    <div class="stat">
-      <div class="stat-label">
-        WYNIK
-      </div>
-
-      <div
-        class="stat-value"
-        id="score"
-      >
-        —
-      </div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-label">
-        KILLS
-      </div>
-
-      <div
-        class="stat-value"
-        id="kills"
-      >
-        —
-      </div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-label">
-        DEATHS
-      </div>
-
-      <div
-        class="stat-value"
-        id="deaths"
-      >
-        —
-      </div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-label">
-        ASSISTS
-      </div>
-
-      <div
-        class="stat-value"
-        id="assists"
-      >
-        —
-      </div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-label">
-        K/D
-      </div>
-
-      <div
-        class="stat-value"
-        id="kd"
-      >
-        —
-      </div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-label">
-        MVP
-      </div>
-
-      <div
-        class="stat-value"
-        id="mvps"
-      >
-        —
-      </div>
-    </div>
-
-  </div>
-
-  <div
-    id="matches"
-    class="matches"
-  >
-    <div class="empty">
-      Brak zapisanych meczów.
+  <div class="widget">
+    <div class="widget-name" id="player">{twój nick}</div>
+    <div class="results" id="results"></div>
+    <div class="match-grid" id="matches">
+      <div class="empty">Łączenie z widgetem…</div>
     </div>
   </div>
+  <script>
+    const token = ${JSON.stringify(token)};
 
-  <div
-    id="status"
-    class="status"
-  >
-    Łączenie...
-  </div>
-
-</div>
-
-<script>
-
-const token =
-  ${JSON.stringify(token)};
-
-function esc(value) {
-
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-
-}
-
-function cls(result) {
-
-  if(result === "W")
-    return "w";
-
-  if(result === "L")
-    return "l";
-
-  if(result === "T")
-    return "t";
-
-  return "q";
-
-}
-
-function date(value) {
-
-  if(!value)
-    return "—";
-
-  const d =
-    new Date(value);
-
-  if(
-    Number.isNaN(
-      d.getTime()
-    )
-  )
-    return "—";
-
-  return d.toLocaleDateString(
-    "pl-PL",
-    {
-      day:"2-digit",
-      month:"2-digit"
+    function esc(value) {
+      return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
-  );
 
-}
+    function cls(result) {
+      if (result === "W") return "w";
+      if (result === "L") return "l";
+      if (result === "T") return "t";
+      return "q";
+    }
 
-function renderLive(data) {
+    function formatDate(value) {
+      if (!value) return "—";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return "—";
+      return d.toLocaleDateString("pl-PL",{day:"2-digit",month:"2-digit"});
+    }
 
-  const live =
-    data.live || {};
+    function render(data) {
+      const live = data.live || {};
+      const player = live.playerName || data.playerName || "{twój nick}";
+      document.getElementById("player").textContent = player;
 
-  document.getElementById(
-    "player"
-  ).textContent =
-    live.playerName ||
-    data.playerName ||
-    "{twój nick}";
+      const matches = Array.isArray(data.matches) ? data.matches.slice(0,10) : [];
+      const results = document.getElementById("results");
 
-  document.getElementById(
-    "liveMap"
-  ).textContent =
-    live.map ||
-    "—";
+      if (matches.length) {
+        results.innerHTML = matches.map(match =>
+          '<div class="result-pill ' + cls(match.result) + '">' +
+          esc(match.result || "—") + '</div>'
+        ).join("");
+      } else {
+        results.innerHTML = Array.from({length:10},() =>
+          '<div class="result-pill q">—</div>'
+        ).join("");
+      }
 
-  document.getElementById(
-    "score"
-  ).textContent =
-    live.score ||
-    "—";
+      const container = document.getElementById("matches");
+      if (!matches.length) {
+        container.innerHTML =
+          '<div class="empty">Historia meczów pojawi się tutaj po zakończeniu pierwszego meczu Competitive.</div>';
+        return;
+      }
 
-  document.getElementById(
-    "kills"
-  ).textContent =
-    live.kills ?? "—";
-
-  document.getElementById(
-    "deaths"
-  ).textContent =
-    live.deaths ?? "—";
-
-  document.getElementById(
-    "assists"
-  ).textContent =
-    live.assists ?? "—";
-
-  document.getElementById(
-    "kd"
-  ).textContent =
-    live.kd ?? "—";
-
-  document.getElementById(
-    "mvps"
-  ).textContent =
-    live.mvps ?? "—";
-
-}
-
-function renderMatches(matches) {
-
-  if(!matches.length) {
-
-    document.getElementById(
-      "matches"
-    ).innerHTML =
-      '<div class="empty">' +
-      'Historia zacznie się zapisywać od meczów rozegranych po uruchomieniu widgetu.' +
-      '</div>';
-
-    return;
-  }
-
-  let output = "";
-
-  matches
-    .slice(0,10)
-    .forEach(match => {
-
-      output +=
+      container.innerHTML = matches.map(match =>
         '<div class="match">' +
-
-          '<div class="top">' +
-
-            '<div class="result ' +
-            cls(match.result) +
-            '">' +
-            esc(match.result) +
-            '</div>' +
-
-            '<div class="map">' +
-            esc(match.map) +
-            '</div>' +
-
+          '<div class="match-line">' +
+            '<div class="match-result ' + cls(match.result) + '">' + esc(match.result || "—") + '</div>' +
+            '<div class="match-map">' + esc(String(match.map || "—").replace(/^de_/,"")) + '</div>' +
           '</div>' +
-
-          '<div class="score">' +
-          esc(match.score) +
-          '</div>' +
-
-          '<div class="meta">' +
-
-            '<span>' +
-            'K ' +
-            esc(match.kills) +
-            ' · D ' +
-            esc(match.deaths) +
-            ' · K/D ' +
-            esc(match.kd) +
-            '</span>' +
-
-            '<span>' +
-            esc(date(match.date)) +
-            '</span>' +
-
-          '</div>' +
-
-        '</div>';
-
-    });
-
-  document.getElementById(
-    "matches"
-  ).innerHTML =
-    output;
-
-}
-
-async function load() {
-
-  try {
-
-    const response =
-      await fetch(
-        "/api/widget/" +
-        encodeURIComponent(token),
-        {
-          cache:"no-store"
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if(
-      !response.ok ||
-      !data.ok
-    ) {
-      throw new Error(
-        data.error ||
-        "Błąd"
-      );
+          '<div class="match-score">' + esc(match.score || "—") + '</div>' +
+          '<div class="match-meta">K/D ' + esc(match.kd ?? "—") + ' · ' + esc(formatDate(match.date)) + '</div>' +
+        '</div>'
+      ).join("");
     }
 
-    renderLive(data);
+    async function load() {
+      try {
+        const response = await fetch("/api/widget/" + encodeURIComponent(token), {cache:"no-store"});
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || "Błąd");
+        render(data);
+      } catch {
+        document.getElementById("matches").innerHTML =
+          '<div class="empty">Nie można pobrać danych widgetu. Sprawdź połączenie z serwerem.</div>';
+      }
+    }
 
-    renderMatches(
-      data.matches || []
-    );
-
-    document.getElementById(
-      "status"
-    ).textContent =
-      "LIVE · " +
-      new Date()
-        .toLocaleTimeString("pl-PL");
-
-  } catch {
-
-    document.getElementById(
-      "status"
-    ).textContent =
-      "BRAK DANYCH";
-
-  }
-
-}
-
-load();
-
-setInterval(
-  load,
-  2000
-);
-
-</script>
-
+    load();
+    setInterval(load,2000);
+  </script>
 </body>
 </html>
 `;
