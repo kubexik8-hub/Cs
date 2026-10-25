@@ -47,7 +47,7 @@ $("colors").querySelectorAll("[data-color]").forEach(b=>b.addEventListener("clic
 ["layout","background","limit","steam"].forEach(id=>$(id).addEventListener("change",()=>{refreshPreview();if($("url").textContent.startsWith("https://"))generate()}));
 document.querySelectorAll("[data-show]").forEach(x=>x.addEventListener("change",()=>{refreshPreview();if($("url").textContent.startsWith("https://"))generate()}));
 $("generate").addEventListener("click",generate);
-$("copy").addEventListener("click",async()=>{const url=$("url").textContent;if(!url.startsWith("https://")){generate();return}try{await navigator.clipboard.writeText(url);$("copy").textContent="SKOPIOWANO";setTimeout(()=>$("copy").textContent="KOPIUJ",1500)}catch{$("notice").textContent="Nie udało się skopiować automatycznie. Zaznacz link i skopiuj go ręcznie.";$("notice").classList.add("show")}});
+$("copy").addEventListener("click",async()=>{if(!$("url").textContent.startsWith("https://"))generate();const url=$("url").textContent;if(!url.startsWith("https://"))return;try{await navigator.clipboard.writeText(url);$("copy").textContent="SKOPIOWANO";setTimeout(()=>$("copy").textContent="KOPIUJ",1500)}catch{$("notice").textContent="Nie udało się skopiować automatycznie. Zaznacz link i skopiuj go ręcznie.";$("notice").classList.add("show")}});
 refreshPreview();
 </script>
 </body></html>
