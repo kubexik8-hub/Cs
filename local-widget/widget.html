@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CS2 OBS Widget — Local</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: Inter, Arial, sans-serif;
+      color: #f5f2fa;
+    }
+    .widget {
+      width: 100%;
+      min-height: 100%;
+      padding: 17px;
+      border-radius: 17px;
+      border: 1px solid rgba(255,255,255,.07);
+      background: linear-gradient(135deg,#0d0a14,#191321);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .widget-name {
+      min-width: 0;
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 950;
+      color: #f4efff;
+      overflow-wrap: anywhere;
+    }
+    .label {
+      margin-top: 4px;
+      color: #938ca3;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .status {
+      color: #938ca3;
+      font-size: 9px;
+      font-weight: 800;
+      text-align: right;
+    }
+    .results {
+      margin-top: 15px;
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .result-pill {
+      width: 27px;
+      height: 27px;
+      flex: 0 0 27px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .w { color: #5ced89; background: rgba(22,206,82,.12); }
+    .l { color: #ff7676; background: rgba(255,72,72,.12); }
+    .t { color: #ffd75d; background: rgba(255,215,93,.12); }
+    .q { color: #a4a0ad; background: rgba(156,163,175,.10); }
+    .match-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(5,minmax(0,1fr));
+      gap: 6px;
+    }
+    .match {
+      min-width: 0;
+      padding: 9px;
+      border-radius: 9px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.045);
+    }
+    .match-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 5px;
+    }
+    .match-result {
+      font-size: 13px;
+      line-height: 1.2;
+      font-weight: 950;
+    }
+    .match-map {
+      min-width: 0;
+      color: #838b98;
+      font-size: 8px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .match-score {
+      margin-top: 4px;
+      color: white;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .match-meta {
+      margin-top: 4px;
+      color: #8f899b;
+      font-size: 8px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    .match-link {
+      display: inline-block;
+      margin-top: 6px;
+      color: #f84982;
+      font-size: 8px;
+      font-weight: 800;
+      text-decoration: underline;
+    }
+    .empty {
+      grid-column: 1/-1;
+      padding: 14px;
+      border-radius: 9px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.045);
+      color: #aaa3b4;
+      font-size: 11px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+    .footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 7px;
+      margin-top: 10px;
+      color: #a19aaa;
+      font-size: 9px;
+    }
+    .footer img { display: block; width: 76px; max-height: 23px; object-fit: contain; }
+    .footer a { color: #f84982; font-weight: 700; text-decoration: underline; }
+    @media(max-width:700px) {
+      .match-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="widget">
+    <div class="header">
+      <div>
+        <div class="widget-name" id="player">{twój nick}</div>
+        <div class="label">CS2 COMPETITIVE · LEETIFY</div>
+      </div>
+      <div class="status" id="status">Łączenie z Leetify…</div>
+    </div>
+    <div class="results" id="results"></div>
+    <div class="match-grid" id="matches">
+      <div class="empty">Pobieram historię meczów…</div>
+    </div>
+    <div class="footer">
+      <a href="https://leetify.com/" target="_blank" rel="noopener noreferrer" aria-label="Data Provided by Leetify">
+        <img src="https://raw.githubusercontent.com/hurr1star/BrowserLeetify/main/Leetify%20Badge%20White%20Small.png" alt="Leetify">
+      </a>
+      <a href="https://leetify.com/" target="_blank" rel="noopener noreferrer">Data Provided by Leetify</a>
+    </div>
+  </div>
+  <script>
+    function esc(value) {
+      return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+    function cls(result) {
+      if (result === "W") return "w";
+      if (result === "L") return "l";
+      if (result === "T") return "t";
+      return "q";
+    }
+    function fmtDate(value) {
+      if (!value) return "—";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return "—";
+      return d.toLocaleDateString("pl-PL",{day:"2-digit",month:"2-digit"});
+    }
+    function render(data) {
+      document.getElementById("player").textContent = data.playerName || "{twój nick}";
+      document.getElementById("status").textContent =
+        "LEETIFY · " + new Date().toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"});
+
+      const matches = Array.isArray(data.matches) ? data.matches.slice(0,10) : [];
+      document.getElementById("results").innerHTML = matches.length
+        ? matches.map(m => '<div class="result-pill ' + cls(m.result) + '">' + esc(m.result) + '</div>').join("")
+        : Array.from({length:10},() => '<div class="result-pill q">—</div>').join("");
+
+      const container = document.getElementById("matches");
+      if (!matches.length) {
+        container.innerHTML = '<div class="empty">' +
+          esc(data.historyError || "Leetify nie zwróciło meczów Competitive.") +
+          '</div>';
+        return;
+      }
+
+      container.innerHTML = matches.map(match => {
+        const rating = match.leetifyRating === null || match.leetifyRating === undefined
+          ? ""
+          : " · Rating " + esc(Number(match.leetifyRating).toFixed(2));
+        const link = match.id
+          ? '<a class="match-link" href="https://leetify.com/app/match-details/' + encodeURIComponent(match.id) + '" target="_blank" rel="noopener noreferrer">View on Leetify</a>'
+          : "";
+
+        return '<div class="match">' +
+          '<div class="match-line">' +
+            '<div class="match-result ' + cls(match.result) + '">' + esc(match.result) + '</div>' +
+            '<div class="match-map">' + esc(match.map || "—") + '</div>' +
+          '</div>' +
+          '<div class="match-score">' + esc(match.score || "—") + '</div>' +
+          '<div class="match-meta">K ' + esc(match.kills) +
+            ' · D ' + esc(match.deaths) +
+            ' · A ' + esc(match.assists) +
+            '<br>K/D ' + esc(match.kd) +
+            ' · HS ' + esc(match.headshots) +
+            rating +
+            '<br>' + esc(fmtDate(match.date)) +
+          '</div>' + link +
+        '</div>';
+      }).join("");
+    }
+    let busy = false;
+    async function load() {
+      if (busy) return;
+      busy = true;
+      try {
+        const response = await fetch("/api/history", {cache:"no-store"});
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || "Nie udało się pobrać historii.");
+        render(data);
+      } catch (error) {
+        document.getElementById("status").textContent = "BŁĄD LEETIFY";
+        document.getElementById("matches").innerHTML =
+          '<div class="empty">' + esc(error.message || "Nie można pobrać historii.") + '</div>';
+      } finally {
+        busy = false;
+      }
+    }
+    load();
+    setInterval(load,90000);
+  </script>
+</body>
+</html>
