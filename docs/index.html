@@ -35,7 +35,7 @@
 <div class="footer">Dane dostarcza Leetify. Ta strona nie jest powiązana z Leetify ani przez nią sponsorowana. <a href="https://leetify.com/" target="_blank" rel="noopener noreferrer">Leetify</a> · <a href="https://github.com/kubexik8-hub/Cs" target="_blank" rel="noopener noreferrer">Kod na GitHub</a></div>
 </div>
 <script>
-const BASE=location.href.replace(/index\.html(?:\?.*)?$/,"");
+const BASE=window.location.origin + "/Cs/";
 const $=id=>document.getElementById(id);
 let accent="#a855f7";
 function selectedShows(){return [...document.querySelectorAll("[data-show]:checked")].map(x=>x.dataset.show)}
