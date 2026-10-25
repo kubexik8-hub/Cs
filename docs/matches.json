@@ -1,0 +1,11 @@
+{
+  "steam64_id": "76561199436045966",
+  "updated_at": null,
+  "profile": {
+    "name": "kubexik",
+    "privacy_mode": "unknown",
+    "total_matches": 0
+  },
+  "matches": [],
+  "historyError": "Pierwsza synchronizacja Leetify jeszcze nie została uruchomiona. Uruchom workflow Refresh CS2 history from Leetify w zakładce Actions."
+}
