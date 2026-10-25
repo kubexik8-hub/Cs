@@ -434,6 +434,163 @@ function processGsi(widget, incoming) {
   };
 }
 
+async function fetchLeetifyJson(path, headers) {
+  let response;
+
+  try {
+    response = await fetch(
+      "https://api-public.cs-prod.leetify.com" + path,
+      {
+        method: "GET",
+        headers,
+        signal: AbortSignal.timeout(12000)
+      }
+    );
+  } catch (error) {
+    throw new Error("Nie można połączyć się z API Leetify. Spróbuj ponownie za chwilę.");
+  }
+
+  let payload = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Leetify odrzuciło żądanie (401). Sprawdź klucz API w ustawieniach Render.");
+    }
+
+    if (response.status === 403 || response.status === 404) {
+      throw new Error("Leetify nie udostępnia tego profilu. Sprawdź, czy masz konto Leetify i poprawne Steam64 ID.");
+    }
+
+    if (response.status === 429) {
+      throw new Error("Limit zapytań Leetify został osiągnięty. Dodaj LEETIFY_API_KEY w Render lub spróbuj później.");
+    }
+
+    throw new Error("API Leetify zwróciło błąd HTTP " + response.status + ".");
+  }
+
+  return payload;
+}
+
+async function fetchLeetifyMatches(widget) {
+  const steamId = String(widget.steamId || "").trim();
+
+  if (!/^\\d{17}$/.test(steamId)) {
+    throw new Error("Widget nie ma poprawnego Steam64 ID.");
+  }
+
+  const headers = {
+    "Accept": "application/json"
+  };
+
+  const apiKey = String(process.env.LEETIFY_API_KEY || "").trim();
+
+  if (apiKey) {
+    headers.Authorization = "Bearer " + apiKey;
+  }
+
+  const query = new URLSearchParams({
+    steam64_id: steamId
+  }).toString();
+
+  // Leetify data is requested live and deliberately not written to our database.
+  const [profile, response] = await Promise.all([
+    fetchLeetifyJson("/v3/profile?" + query, headers),
+    fetchLeetifyJson("/v3/profile/matches?" + query, headers)
+  ]);
+
+  const allMatches = Array.isArray(response)
+    ? response
+    : Array.isArray(response?.matches)
+      ? response.matches
+      : Array.isArray(response?.data)
+        ? response.data
+        : [];
+
+  const matches = allMatches
+    .filter(match =>
+      String(match?.data_source || "").toLowerCase() === "matchmaking_competitive"
+    )
+    .map(match => {
+      const stats = Array.isArray(match.stats) ? match.stats : [];
+      const player = stats.find(item =>
+        String(item?.steam64_id || "") === steamId
+      );
+
+      if (!player) {
+        return null;
+      }
+
+      const teamScores = Array.isArray(match.team_scores)
+        ? match.team_scores
+        : [];
+
+      const playerTeam = Number(player.initial_team_number);
+      const ownTeam = teamScores.find(team =>
+        Number(team.team_number) === playerTeam
+      );
+      const enemyTeam = teamScores.find(team =>
+        Number(team.team_number) !== playerTeam
+      );
+
+      const ownScore = Number(
+        ownTeam?.score ?? player.rounds_won ?? 0
+      );
+      const enemyScore = Number(
+        enemyTeam?.score ?? player.rounds_lost ?? 0
+      );
+
+      let result = "?";
+
+      if (ownScore > enemyScore) result = "W";
+      else if (ownScore < enemyScore) result = "L";
+      else result = "T";
+
+      const kills = Number(player.total_kills ?? 0);
+      const deaths = Number(player.total_deaths ?? 0);
+      const kd = Number(
+        player.kd_ratio ?? (deaths > 0 ? kills / deaths : kills)
+      );
+
+      return {
+        id: String(match.id || ""),
+        date: match.finished_at || "",
+        playerName: player.name || profile?.name || "",
+        map: String(match.map_name || "—").replace(/^de_/, "").toUpperCase(),
+        score: ownScore + ":" + enemyScore,
+        result,
+        kills,
+        deaths,
+        assists: Number(player.total_assists ?? 0),
+        kd: Number.isFinite(kd) ? Number(kd.toFixed(2)) : 0,
+        leetifyRating: player.leetify_rating ?? null,
+        source: String(match.data_source || "")
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 10);
+
+  let historyError = "";
+
+  if (profile?.privacy_mode === "private") {
+    historyError = "Profil Leetify jest prywatny lub nie udostępnia historii przez API.";
+  } else if (!matches.length) {
+    historyError = "Leetify nie zwróciło jeszcze żadnych przetworzonych meczów Competitive dla tego profilu.";
+  }
+
+  return {
+    playerName: profile?.name || matches[0]?.playerName || "",
+    matches,
+    historyError
+  };
+}
+
 function obsPage(token) {
   return `
 <!DOCTYPE html>
@@ -545,6 +702,35 @@ function obsPage(token) {
       font-size: 11px;
       line-height: 1.5;
     }
+    .match-link {
+      display: inline-block;
+      margin-top: 7px;
+      color: #f84982;
+      font-size: 8px;
+      font-weight: 800;
+      text-decoration: underline;
+    }
+    .leetify-footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      color: #a19aaa;
+      font-size: 9px;
+    }
+    .leetify-footer img {
+      display: block;
+      width: 76px;
+      max-height: 23px;
+      object-fit: contain;
+    }
+    .leetify-footer a {
+      color: #f84982;
+      font-size: 9px;
+      font-weight: 700;
+      text-decoration: underline;
+    }
     @media(max-width:700px) {
       .match-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
     }
@@ -556,6 +742,12 @@ function obsPage(token) {
     <div class="results" id="results"></div>
     <div class="match-grid" id="matches">
       <div class="empty">Łączenie z widgetem…</div>
+    </div>
+    <div class="leetify-footer">
+      <a href="https://leetify.com/" target="_blank" rel="noopener noreferrer" aria-label="Data Provided by Leetify">
+        <img src="https://raw.githubusercontent.com/hurr1star/BrowserLeetify/main/Leetify%20Badge%20White%20Small.png" alt="Data Provided by Leetify">
+      </a>
+      <a href="https://leetify.com/" target="_blank" rel="noopener noreferrer">Data Provided by Leetify</a>
     </div>
   </div>
   <script>
@@ -606,7 +798,9 @@ function obsPage(token) {
       const container = document.getElementById("matches");
       if (!matches.length) {
         container.innerHTML =
-          '<div class="empty">Historia meczów pojawi się tutaj po zakończeniu pierwszego meczu Competitive.</div>';
+          '<div class="empty">' +
+          esc(data.historyError || "Brak historii Competitive w Leetify.") +
+          '</div>';
         return;
       }
 
@@ -618,6 +812,7 @@ function obsPage(token) {
           '</div>' +
           '<div class="match-score">' + esc(match.score || "—") + '</div>' +
           '<div class="match-meta">K/D ' + esc(match.kd ?? "—") + ' · ' + esc(formatDate(match.date)) + '</div>' +
+          (match.id ? '<a class="match-link" href="https://leetify.com/app/match-details/' + encodeURIComponent(match.id) + '" target="_blank" rel="noopener noreferrer">View on Leetify</a>' : '') +
         '</div>'
       ).join("");
     }
@@ -635,7 +830,7 @@ function obsPage(token) {
     }
 
     load();
-    setInterval(load,2000);
+    setInterval(load,60000);
   </script>
 </body>
 </html>
@@ -914,30 +1109,34 @@ const server =
 
           }
 
+          const live = getLiveData(widget);
+          let history;
+
+          try {
+            history = await fetchLeetifyMatches(widget);
+          } catch (error) {
+            console.error("[Leetify API]", error.message || error);
+            history = {
+              playerName: "",
+              matches: [],
+              historyError: error.message || "Nie można pobrać historii z Leetify."
+            };
+          }
+
           return json(
             res,
             200,
             {
               ok:true,
-
               playerName:
+                history.playerName ||
+                live.playerName ||
                 widget.playerName ||
-                getLiveData(
-                  widget
-                ).playerName,
-
-              live:
-                getLiveData(
-                  widget
-                ),
-
-              matches:
-                Array.isArray(
-                  widget.matches
-                )
-                  ? widget.matches
-                      .slice(0,10)
-                  : []
+                "{twój nick}",
+              live,
+              matches: history.matches,
+              historyProvider: "Leetify",
+              historyError: history.historyError
             }
           );
 
