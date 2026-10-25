@@ -1,130 +1,68 @@
 <!doctype html>
 <html lang="pl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CS2 OBS Widget</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080910"><title>CS2 Performance Widget</title>
 <style>
-:root{--accent:#a855f7;--accent-soft:#a855f722;--text:#f7f1ff;--muted:#9b90aa;--green:#5ced89;--red:#ff747e;--yellow:#ffd75d;--card:#161020;--border:#ffffff14}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;width:100%;overflow:hidden;background:transparent;color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}.shell{width:100%;padding:14px;border-radius:15px;border:1px solid var(--border);background:transparent}.shell.solid{background:linear-gradient(140deg,#1b1427f5,#100b18f5);box-shadow:0 10px 35px #0004}.widget{width:100%;min-width:0}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.identity{min-width:0}.name{font-size:22px;font-weight:1000;letter-spacing:-.6px;line-height:1.1;overflow-wrap:anywhere}.sub{margin-top:5px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}.mark{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-size:9px;font-weight:1000;letter-spacing:.7px;white-space:nowrap}.dot{width:5px;height:5px;border-radius:50%;background:var(--green)}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:12px 0}.stat{min-width:0;padding:10px;border-radius:10px;border:1px solid var(--border);background:#ffffff08}.stat-label{font-size:8px;font-weight:900;letter-spacing:.9px;color:var(--muted);text-transform:uppercase}.stat-value{margin-top:5px;font-size:19px;line-height:1.1;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat-caption{margin-top:4px;color:#83778f;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.form{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:11px}.form-label{margin-right:4px;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.9px;text-transform:uppercase}.pill{width:25px;height:25px;display:grid;place-items:center;border-radius:7px;font-size:10px;font-weight:1000;border:1px solid transparent}.pill.w{background:#5ced8918;color:var(--green);border-color:#5ced8924}.pill.l{background:#ff747e18;color:var(--red);border-color:#ff747e24}.pill.t{background:#ffd75d18;color:var(--yellow);border-color:#ffd75d24}.pill.q{background:#ffffff0a;color:#a9a0b5;border-color:#ffffff10}.history{margin-top:12px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.match{min-width:0;padding:9px;border:1px solid var(--border);border-radius:10px;background:#ffffff08}.match-top{display:flex;align-items:center;justify-content:space-between;gap:5px}.result{font-size:14px;font-weight:1000}.result.w{color:var(--green)}.result.l{color:var(--red)}.result.t{color:var(--yellow)}.map{font-size:8px;color:#a39ab1;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.score{margin-top:6px;font-size:12px;font-weight:1000}.details{margin-top:5px;color:#aaa0b8;font-size:8px;line-height:1.5;overflow-wrap:anywhere}.source{display:inline-block;margin-top:4px;color:var(--accent);font-size:8px;font-weight:900}.empty{padding:16px;border-radius:10px;border:1px solid var(--border);background:#ffffff06;color:#b5a9c4;font-size:11px;line-height:1.6;white-space:pre-wrap}.foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;color:#786d87;font-size:8px}.foot a{color:var(--accent);text-decoration:none;font-weight:900}.history-only .history{margin-top:0}.history-only .head{margin-bottom:11px}.preview-tag{position:fixed;right:6px;top:4px;color:#a99bb6;font-size:7px;letter-spacing:1px;font-weight:1000}
-@media(max-width:700px){.history{grid-template-columns:repeat(2,minmax(0,1fr))}.name{font-size:19px}.stat-value{font-size:16px}.shell{padding:11px}}
-</style>
-</head>
-<body>
-<div id="root" class="shell"><div class="empty">Ładowanie widgetu…</div></div>
+:root{--accent:#a855f7;--rgb:168,85,247;--text:#f5f5fb;--muted:#9294a8;--green:#65f0ad;--red:#ff647c;--yellow:#ffd477;--line:#ffffff18;--soft:rgba(var(--rgb),.13)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}body{overflow:auto;scrollbar-width:none}body::-webkit-scrollbar{display:none}
+.shell{position:relative;width:100%;padding:15px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(135deg,rgba(15,16,26,.9),rgba(10,11,18,.7));isolation:isolate;overflow:hidden}.shell:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--accent),transparent 75%);z-index:-1}.shell:after{content:"";position:absolute;width:230px;height:180px;right:-100px;top:-105px;border-radius:50%;background:var(--soft);filter:blur(15px);pointer-events:none;z-index:-1}.shell.solid{background:linear-gradient(135deg,#171522,#0b0d15);box-shadow:0 15px 40px #0005}
+.header{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:2px 2px 13px;border-bottom:1px solid var(--line)}.identity{display:flex;align-items:center;gap:11px;min-width:0}.logo{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:11px;background:linear-gradient(140deg,var(--accent),rgba(var(--rgb),.18));border:1px solid rgba(var(--rgb),.75);box-shadow:0 0 24px rgba(var(--rgb),.16);font-size:12px;font-weight:1000;letter-spacing:-.6px}.player{min-width:0}.name{font-size:clamp(17px,2vw,23px);font-weight:950;letter-spacing:-.7px;line-height:1.05;overflow-wrap:anywhere}.kicker{margin-top:5px;font-size:8px;font-weight:850;letter-spacing:1.8px;color:var(--muted);text-transform:uppercase}.status{display:flex;align-items:center;gap:7px;flex:none;border:1px solid rgba(var(--rgb),.28);border-radius:7px;padding:8px 10px;background:var(--soft);font-size:8px;font-weight:900;letter-spacing:1px;color:#e6d7ff;white-space:nowrap}.dot{width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 9px #65f0ad88}
+.summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:13px 2px 9px}.section-title{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:950;letter-spacing:1.45px;color:#e7e7f2;text-transform:uppercase}.section-title:before{content:"";width:3px;height:13px;border-radius:3px;background:var(--accent)}.micro{font-size:9px;color:var(--muted);font-weight:700;white-space:nowrap}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:7px;margin:0 0 13px}.metric{position:relative;min-width:0;padding:11px;border:1px solid var(--line);border-radius:9px;background:linear-gradient(140deg,#ffffff0a,#ffffff03);overflow:hidden}.metric:after{content:"";position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,rgba(var(--rgb),.6),transparent)}.metric-label{font-size:8px;color:var(--muted);font-weight:950;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}.metric-value{margin-top:7px;font-size:clamp(18px,2vw,25px);line-height:1;font-weight:1000;letter-spacing:-.7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric-foot{margin-top:6px;font-size:8px;color:#777b91;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.positive{color:var(--green)}.negative{color:var(--red)}.accent-text{color:var(--accent)}
+.form-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 1px 14px}.form-title{font-size:8px;color:var(--muted);font-weight:950;letter-spacing:1px;margin-right:2px}.form-pill{display:grid;place-items:center;width:25px;height:23px;border-radius:5px;font-size:9px;font-weight:1000;border:1px solid transparent}.form-pill.w{color:var(--green);background:#65f0ad12;border-color:#65f0ad30}.form-pill.l{color:var(--red);background:#ff647c12;border-color:#ff647c30}.form-pill.t{color:var(--yellow);background:#ffd47712;border-color:#ffd47730}.form-pill.q{color:#a8adbf;background:#ffffff08;border-color:#ffffff12}.form-note{font-size:8px;color:#85889c;margin-left:auto}
+.matches{display:grid;gap:6px}.match{display:grid;grid-template-columns:37px minmax(115px,1.18fr) 67px minmax(116px,1fr) 63px 72px;align-items:center;gap:10px;min-width:0;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:linear-gradient(90deg,#ffffff07,#ffffff02);transition:border-color .15s ease,background .15s ease}.match:hover{border-color:rgba(var(--rgb),.5);background:#ffffff0a}.result{display:grid;place-items:center;width:31px;height:31px;border-radius:7px;font-size:11px;font-weight:1000;border:1px solid transparent}.result.w{color:var(--green);background:#65f0ad12;border-color:#65f0ad35}.result.l{color:var(--red);background:#ff647c12;border-color:#ff647c35}.result.t{color:var(--yellow);background:#ffd47712;border-color:#ffd47735}.result.q{color:#a8adbf;background:#ffffff08;border-color:#ffffff12}
+.mapblock{min-width:0}.map{font-size:11px;font-weight:950;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.match-sub{display:flex;gap:6px;align-items:center;margin-top:4px;min-width:0;font-size:8px;color:var(--muted)}.mode{color:var(--accent);font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.match-date{white-space:nowrap}.score{font-size:14px;font-weight:1000;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.4px}.score-label{margin-top:3px;font-size:7px;letter-spacing:1px;color:#777b91;font-weight:850}.kda{display:flex;align-items:center;gap:9px;min-width:0}.kda-part{display:flex;flex-direction:column;gap:4px;min-width:18px}.kda-value{font-size:11px;font-weight:950;font-variant-numeric:tabular-nums}.kda-label{font-size:7px;letter-spacing:.5px;color:#777b91;font-weight:900}.extras{display:flex;gap:9px;align-items:center;margin-top:4px;color:#9699ad;font-size:8px}.extras strong{color:#dfe0eb;font-weight:900}.hs{white-space:nowrap}.rating{text-align:right}.rating-value{font-size:13px;font-weight:1000;white-space:nowrap}.rating-label{margin-top:3px;font-size:7px;color:#777b91;letter-spacing:.7px;font-weight:850}
+.empty{padding:16px;border:1px dashed #ffffff25;border-radius:10px;background:#ffffff04;color:#b1b4c7;font-size:11px;line-height:1.7;white-space:pre-wrap}.footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;padding:9px 2px 0;border-top:1px solid var(--line);font-size:8px;color:#74788c}.footer a{color:var(--accent);text-decoration:none;font-weight:950;letter-spacing:.7px}.history-only .summary{margin-top:0}.preview-tag{position:fixed;right:7px;top:5px;padding:3px 5px;border-radius:4px;background:#090a12dd;border:1px solid #ffffff18;color:#aeb0c3;font-size:7px;font-weight:1000;letter-spacing:1.2px}
+@media(max-width:800px){.shell{padding:11px}.match{grid-template-columns:34px minmax(100px,1fr) 62px minmax(100px,.95fr);gap:8px}.match .hs,.match .rating{display:none}.metrics{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}}
+@media(max-width:520px){.status{padding:6px;font-size:7px}.logo{width:35px;height:35px}.header{gap:8px}.match{grid-template-columns:31px minmax(0,1fr) 57px;gap:7px}.match .kda{grid-column:2/4;padding-top:7px;border-top:1px solid var(--line)}.match .mapblock{grid-column:2}.match .score{grid-column:3;grid-row:1}.match .hs,.match .rating{display:none}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.micro{font-size:8px}.footer{flex-wrap:wrap}}
+</style></head>
+<body><div id="root" class="shell"><div class="empty">Ładowanie statystyk…</div></div>
 <script>
 (function(){
-const params=new URLSearchParams(location.search);
-const wantedSteam=params.get("steam64_id")||"76561199436045966";
-const layout=["stats","full","history"].includes(params.get("layout"))?params.get("layout"):"stats";
-const background=params.get("bg")==="solid"?"solid":"transparent";
-const limit=Math.max(1,Math.min(30,Number(params.get("limit")||10)));
-const colors=["#a855f7","#f84982","#22d3ee","#22c55e","#f59e0b"];
-const accent=params.get("accent");
-const safeAccent=colors.includes(accent)?accent:"#a855f7";
-const validShows=["kd","winrate","avg","rating","form","date"];
-const show=new Set((params.get("show")||"kd,winrate,avg,rating,form,date").split(",").filter(x=>validShows.includes(x)));
-const preview=params.get("preview")==="1";
-const root=document.getElementById("root");
-document.documentElement.style.setProperty("--accent",safeAccent);
-document.documentElement.style.setProperty("--accent-soft",safeAccent+"22");
-root.classList.toggle("solid",background==="solid");
-if(layout==="history")root.classList.add("history-only");
+const params=new URLSearchParams(location.search),wantedSteam=params.get("steam64_id")||"76561199436045966",rawLayout=params.get("layout")||"overview";
+const layout=rawLayout==="stats"?"compact":rawLayout==="full"?"overview":(["compact","overview","history"].includes(rawLayout)?rawLayout:"overview"),background=params.get("bg")==="solid"?"solid":"transparent",limit=Math.max(1,Math.min(30,Number(params.get("limit")||10)));
+const colors={"#a855f7":"168,85,247","#f84982":"248,73,130","#22d3ee":"34,211,238","#22c55e":"34,197,94","#f59e0b":"245,158,11"},accent=params.get("accent")||"#a855f7",safeAccent=colors[accent]?accent:"#a855f7";
+const validShows=["kd","winrate","avg","hs","rating","form","date","mode","assists"],show=new Set((params.get("show")||"kd,winrate,avg,hs,rating,form,date,mode,assists").split(",").filter(x=>validShows.includes(x))),preview=params.get("preview")==="1",root=document.getElementById("root");
+document.documentElement.style.setProperty("--accent",safeAccent);document.documentElement.style.setProperty("--rgb",colors[safeAccent]);document.documentElement.style.setProperty("--soft","rgba("+colors[safeAccent]+",.13)");root.classList.toggle("solid",background==="solid");if(layout==="history")root.classList.add("history-only");
 const esc=v=>String(v==null?"":v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-function sourceName(v){const s=String(v||"unknown").toLowerCase();const labels={matchmaking:"Premier / MM",matchmaking_competitive:"Competitive",faceit:"FACEIT",renown:"Renown"};return labels[s]||s.replaceAll("_"," ").replace(/\b\w/g,c=>c.toUpperCase())}
-function shortSource(v){const s=String(v||"").toLowerCase();return({matchmaking:"MM",matchmaking_competitive:"COMP",faceit:"FACEIT",renown:"REN"})[s]||sourceName(s).split(" ").map(x=>x[0]).join("").slice(0,5).toUpperCase()}
-function outcomeClass(v){return v==="W"?"w":v==="L"?"l":v==="T"?"t":"q"}
-function dateLabel(v){if(!v)return"—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("pl-PL",{day:"2-digit",month:"2-digit"})}
+function sourceName(v){const s=String(v||"unknown").toLowerCase();return({matchmaking:"MATCHMAKING",matchmaking_competitive:"COMPETITIVE",faceit:"FACEIT",renown:"RENOWN",premier:"PREMIER"})[s]||s.replaceAll("_"," ").toUpperCase()}
+function cls(v){return v==="W"?"w":v==="L"?"l":v==="T"?"t":"q"}
+function dateLabel(v){if(!v)return"—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("pl-PL",{day:"2-digit",month:"2-digit",year:"2-digit"})+" · "+d.toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}
 function normalize(snapshot){
-if(String(snapshot.steam64_id||"")!==wantedSteam)return {mismatch:true,profile:snapshot.profile||{},matches:[]};
-const all=Array.isArray(snapshot.matches)?snapshot.matches:[];
-const matches=all.map(m=>{
-const p=(Array.isArray(m.stats)?m.stats:[]).find(x=>String(x.steam64_id||"")===wantedSteam);
-if(!p)return null;
-const teams=Array.isArray(m.team_scores)?m.team_scores:[];
-const teamNo=Number(p.initial_team_number);
-const own=teams.find(x=>Number(x.team_number)===teamNo);
-const opp=teams.find(x=>Number(x.team_number)!==teamNo);
-let a=own?Number(own.score):p.rounds_won==null?null:Number(p.rounds_won);
-let b=opp?Number(opp.score):p.rounds_lost==null?null:Number(p.rounds_lost);
-let result="—";
-const out=String(m.outcome||m.result||"").toLowerCase();
-if(["win","won","w"].includes(out))result="W";else if(["loss","lost","l"].includes(out))result="L";else if(["tie","draw","t"].includes(out))result="T";else if(a!==null&&b!==null)result=a>b?"W":a<b?"L":"T";
-return{id:String(m.id||""),source:String(m.data_source||"unknown"),map:String(m.map_name||"Unknown").replace(/^de_/,"").toUpperCase(),date:m.finished_at||"",score:a===null?"—":a+":"+b,result,k:Number(p.total_kills||0),d:Number(p.total_deaths||0),a:Number(p.total_assists||0),hs:Number(p.total_hs_kills||0),kd:p.kd_ratio==null?null:Number(p.kd_ratio),rating:p.leetify_rating==null?null:Number(p.leetify_rating)};
+if(String(snapshot.steam64_id||"")!==wantedSteam)return{mismatch:true,snapshot};
+const matches=(Array.isArray(snapshot.matches)?snapshot.matches:[]).map(m=>{
+const p=(Array.isArray(m.stats)?m.stats:[]).find(x=>String(x.steam64_id||"")===wantedSteam);if(!p)return null;
+const teams=Array.isArray(m.team_scores)?m.team_scores:[],teamNo=Number(p.initial_team_number),own=teams.find(x=>Number(x.team_number)===teamNo),opp=teams.find(x=>Number(x.team_number)!==teamNo);
+const a=own&&Number.isFinite(Number(own.score))?Number(own.score):(p.rounds_won==null?null:Number(p.rounds_won)),b=opp&&Number.isFinite(Number(opp.score))?Number(opp.score):(p.rounds_lost==null?null:Number(p.rounds_lost));
+let result="—";const out=String(m.outcome||m.result||"").toLowerCase();if(["win","won","w"].includes(out))result="W";else if(["loss","lost","l"].includes(out))result="L";else if(["tie","draw","t"].includes(out))result="T";else if(a!==null&&b!==null)result=a>b?"W":a<b?"L":"T";
+const kills=Number(p.total_kills||0),deaths=Number(p.total_deaths||0),assists=Number(p.total_assists||0),hs=Number(p.total_hs_kills||0);
+return{id:String(m.id||""),source:String(m.data_source||"unknown"),map:String(m.map_name||"Unknown map").replace(/^de_/i,"").toUpperCase(),date:m.finished_at||"",score:a===null||b===null?"—":a+":"+b,result,kills,deaths,assists,hs,kd:p.kd_ratio==null?(deaths?kills/deaths:kills):Number(p.kd_ratio),rating:p.leetify_rating==null?null:Number(p.leetify_rating)};
 }).filter(Boolean).sort((a,b)=>(new Date(b.date).getTime()||0)-(new Date(a.date).getTime()||0));
-return{mismatch:false,profile:snapshot.profile||{},matches,updated:snapshot.updated_at||""};
+return{mismatch:false,profile:snapshot.profile||{},matches,updated:snapshot.updated_at||"",historyError:snapshot.historyError||""}
 }
-function statsFor(matches){
-const wins=matches.filter(m=>m.result==="W").length,losses=matches.filter(m=>m.result==="L").length,decided=wins+losses;
-const kills=matches.reduce((s,m)=>s+m.k,0),deaths=matches.reduce((s,m)=>s+m.d,0);
-const ratings=matches.map(m=>m.rating).filter(n=>Number.isFinite(n));
-return{kd:deaths?kills/deaths:kills,winrate:decided?wins/decided*100:0,avg:matches.length?kills/matches.length:0,rating:ratings.length?ratings.reduce((s,n)=>s+n,0)/ratings.length:null,wins,losses};
+function statsFor(ms){
+const wins=ms.filter(m=>m.result==="W").length,losses=ms.filter(m=>m.result==="L").length,ties=ms.filter(m=>m.result==="T").length,decided=wins+losses,k=ms.reduce((s,m)=>s+m.kills,0),d=ms.reduce((s,m)=>s+m.deaths,0),a=ms.reduce((s,m)=>s+m.assists,0),hs=ms.reduce((s,m)=>s+m.hs,0),rr=ms.map(m=>m.rating).filter(Number.isFinite);
+return{wins,losses,ties,k,d,a,hs,kd:d?k/d:k,winrate:decided?wins/decided*100:0,avg:ms.length?k/ms.length:0,avgA:ms.length?a/ms.length:0,hsRate:k?hs/k*100:0,rating:rr.length?rr.reduce((s,n)=>s+n,0)/rr.length:null}
 }
-function formStrip(matches){if(!matches.length)return"";return'<div class="form"><span class="form-label">OSTATNIE</span>'+matches.slice(0,10).map(m=>'<span class="pill '+outcomeClass(m.result)+'">'+esc(m.result||"—")+'</span>').join("")+'</div>'}
-function metrics(s,matches){
-const items=[];
-if(show.has("kd"))items.push(["K/D",s.kd.toFixed(2),"ogółem w historii"]);
-if(show.has("winrate"))items.push(["WIN RATE",s.winrate.toFixed(1)+"%","z wygranych / przegranych"]);
-if(show.has("avg"))items.push(["ŚR. KILLS",s.avg.toFixed(1),"zapisane mecze"]);
-if(show.has("rating"))items.push(["LEETIFY",s.rating===null?"—":s.rating.toFixed(2),"średnia z dostępnych ocen"]);
-return items.length?'<div class="stats">'+items.map(([l,v,c])=>'<div class="stat"><div class="stat-label">'+l+'</div><div class="stat-value">'+esc(v)+'</div><div class="stat-caption">'+esc(c)+'</div></div>').join("")+'</div>':"";
-}
-function cards(matches){
-if(!matches.length)return'<div class="empty">Brak meczów w pliku historii. Uruchom pierwszą synchronizację Leetify w GitHub Actions.</div>';
-return'<div class="history">'+matches.map(m=>'<article class="match"><div class="match-top"><span class="result '+outcomeClass(m.result)+'">'+esc(m.result)+'</span><span class="map">'+esc(m.map)+'</span></div><div class="score">'+esc(m.score)+'</div><div class="details">K '+m.k+' · D '+m.d+' · A '+m.a+(show.has("kd")&&m.kd!==null?' · K/D '+m.kd.toFixed(2):"")+(show.has("date")?'<br>'+dateLabel(m.date):"")+'</div><div class="source">'+esc(sourceName(m.source))+'</div></article>').join("")+'</div>';
+function formStrip(ms,s){if(!ms.length||!show.has("form"))return"";return'<div class="form-row"><span class="form-title">FORMA · OSTATNIE 10</span>'+ms.slice(0,10).map(m=>'<span class="form-pill '+cls(m.result)+'" title="'+esc(m.map+" · "+m.score)+'">'+esc(m.result)+'</span>').join("")+'<span class="form-note"><strong class="positive">'+s.wins+'W</strong> / <strong class="negative">'+s.losses+'L</strong> / '+s.ties+'T</span></div>'}
+function metrics(s,ms){const items=[];if(show.has("winrate"))items.push(["WIN RATE",s.winrate.toFixed(1)+"%","wygrane / rozstrzygnięte","accent-text"]);if(show.has("kd"))items.push(["K/D",s.kd.toFixed(2),"zabójstwa / zgony",""]);if(show.has("avg"))items.push(["AVG KILLS",s.avg.toFixed(1),"średnio na mecz",""]);if(show.has("hs"))items.push(["HEADSHOTS",s.hsRate.toFixed(1)+"%","udział HS we fragach",""]);if(show.has("rating"))items.push(["LEETIFY AVG",s.rating===null?"—":s.rating.toFixed(2),"średnia dostępnych ocen",""]);if(show.has("assists"))items.push(["AVG ASYST",s.avgA.toFixed(1),"średnio na mecz",""]);return items.length?'<div class="metrics">'+items.map(([l,v,c,cl])=>'<div class="metric"><div class="metric-label">'+l+'</div><div class="metric-value '+cl+'">'+esc(v)+'</div><div class="metric-foot">'+c+'</div></div>').join("")+'</div>':""}
+function cards(ms,total){
+if(!ms.length)return'<div class="empty">Brak danych meczowych do wyświetlenia.<br>'+esc(total===0?"Synchronizacja nie znalazła meczów. Sprawdź import meczów na profilu Leetify.":"Historia jest pusta.")+'</div>';
+return'<div class="matches">'+ms.map(m=>'<article class="match"><div class="result '+cls(m.result)+'">'+esc(m.result)+'</div><div class="mapblock"><div class="map">'+esc(m.map)+'</div><div class="match-sub">'+(show.has("mode")?'<span class="mode">'+esc(sourceName(m.source))+'</span>':'')+(show.has("date")?'<span class="match-date">'+esc(dateLabel(m.date))+'</span>':'')+'</div></div><div><div class="score">'+esc(m.score)+'</div><div class="score-label">WYNIK RUND</div></div><div class="kda"><div class="kda-part"><span class="kda-value">'+m.kills+'</span><span class="kda-label">KILLS</span></div><div class="kda-part"><span class="kda-value">'+m.deaths+'</span><span class="kda-label">DEATHS</span></div><div class="kda-part"><span class="kda-value">'+m.assists+'</span><span class="kda-label">ASSISTS</span></div>'+(show.has("kd")?'<div class="kda-part"><span class="kda-value">'+(Number.isFinite(m.kd)?m.kd.toFixed(2):"—")+'</span><span class="kda-label">K/D</span></div>':'')+'</div><div class="hs"><div class="extras"><strong>'+(m.kills?(m.hs/m.kills*100).toFixed(0):"0")+'%</strong></div><div class="rating-label">HEADSHOTS</div></div><div class="rating"><div class="rating-value '+(m.rating!==null&&m.rating>=7?"positive":"")+'">'+(m.rating===null?"—":m.rating.toFixed(2))+'</div><div class="rating-label">LEETIFY RATING</div></div></article>').join("")+'</div>'
 }
 function render(snapshot){
-const normalized=normalize(snapshot);
-if(normalized.mismatch){root.innerHTML='<div class="empty">Ten link jest skonfigurowany dla Steam64 ID '+esc(wantedSteam)+', ale opublikowana historia należy do innego profilu ('+esc(snapshot.steam64_id)+'). Zmień STEAM64_ID w workflow GitHub i uruchom synchronizację, aby wygenerować widget dla innego gracza.</div>';return}
-const matches=normalized.matches;
-const recent=matches.slice(0,limit);
-const stats=statsFor(matches);
-const profile=normalized.profile;
-const name=profile.name||"{twój nick}";
-const head='<div class="head"><div class="identity"><div class="name">'+esc(name)+'</div><div class="sub">CS2 · LEETIFY MATCH STATS</div></div><div class="mark"><span class="dot"></span> MATCH DATA</div></div>';
-const metricRow=metrics(stats,matches);
-const form=show.has("form")?formStrip(matches):"";
-const history=cards(recent);
-let body="";
-if(layout==="stats"){
-body=head+metricRow+form;
-}else if(layout==="history"){
-body=head+history;
-}else{
-body=head+metricRow+form+history;
-}
-const footer='<div class="foot"><span>'+matches.length+' dostępnych meczów · '+(normalized.updated?new Date(normalized.updated).toLocaleDateString("pl-PL"):"")+'</span><a href="https://leetify.com/" target="_blank" rel="noopener noreferrer">DATA PROVIDED BY LEETIFY</a></div>';
-root.innerHTML=body+footer;
+const n=normalize(snapshot);if(n.mismatch){root.innerHTML='<div class="empty">Ten widget ma ustawione Steam64 ID '+esc(wantedSteam)+', ale historia należy do profilu '+esc(snapshot.steam64_id)+'. Zmień STEAM64_ID w GitHub Actions i uruchom synchronizację.</div>';return}
+const ms=n.matches,recent=ms.slice(0,limit),s=statsFor(ms),name=n.profile.name||"CS2 PLAYER";
+const head='<div class="header"><div class="identity"><div class="logo">CS<span style="opacity:.65">/2</span></div><div class="player"><div class="name">'+esc(name)+'</div><div class="kicker">PLAYER PERFORMANCE · COUNTER-STRIKE 2</div></div></div><div class="status"><span class="dot"></span> LEETIFY SYNC</div></div>';
+const summary='<div class="summary"><div class="section-title">Performance overview</div><div class="micro">'+ms.length+' MECZÓW ANALIZOWANYCH</div></div>',stats=metrics(s,ms),form=formStrip(ms,s),historyTitle='<div class="summary"><div class="section-title">Match history</div><div class="micro">OSTATNIE '+recent.length+' / '+ms.length+'</div></div>',history=cards(recent,ms.length);
+let body=layout==="compact"?head+summary+stats+form:layout==="history"?head+historyTitle+history:head+summary+stats+form+historyTitle+history;
+const updated=n.updated?new Date(n.updated).toLocaleString("pl-PL",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"—";
+root.innerHTML=body+'<div class="footer"><span>SYNC '+esc(updated)+' · HISTORIA MECZÓW LEETIFY</span><a href="https://leetify.com/" target="_blank" rel="noopener noreferrer">LEETIFY</a></div>'
 }
 async function load(){
-if(preview){
-const demo=[
-{result:"W",map:"MIRAGE",score:"13:8",source:"matchmaking",k:22,d:14,a:5,kd:1.57,rating:7.8,date:"2026-10-24T20:15:00Z"},
-{result:"W",map:"NUKE",score:"13:10",source:"matchmaking_competitive",k:19,d:16,a:4,kd:1.19,rating:6.3,date:"2026-10-23T18:12:00Z"},
-{result:"L",map:"INFERNO",score:"9:13",source:"faceit",k:16,d:18,a:3,kd:.89,rating:5.7,date:"2026-10-22T21:30:00Z"},
-{result:"W",map:"DUST2",score:"13:7",source:"matchmaking",k:24,d:12,a:7,kd:2,rating:8.1,date:"2026-10-21T16:30:00Z"},
-{result:"T",map:"ANCIENT",score:"12:12",source:"matchmaking_competitive",k:20,d:20,a:6,kd:1,rating:6.9,date:"2026-10-20T15:10:00Z"}
-];
-const m=demo.map((x,i)=>({...x,id:String(i)}));
-render({steam64_id:wantedSteam,updated_at:new Date().toISOString(),profile:{name:"kubexik"},matches:m.map(x=>({id:x.id,data_source:x.source,map_name:x.map.toLowerCase(),finished_at:x.date,team_scores:[{team_number:2,score:Number(x.score.split(":")[0])},{team_number:3,score:Number(x.score.split(":")[1])}],stats:[{steam64_id:wantedSteam,name:"kubexik",initial_team_number:2,total_kills:x.k,total_deaths:x.d,total_assists:x.a,kd_ratio:x.kd,leetify_rating:x.rating,rounds_won:null,rounds_lost:null}]}))});
-const tag=document.createElement("div");tag.className="preview-tag";tag.textContent="PREVIEW";document.body.appendChild(tag);return;
-}
-try{
-let snapshot=null;
-let lastError=null;
-for(const path of ["./matches.json","./docs/matches.json"]){
-try{
-const response=await fetch(path+"?ts="+Date.now(),{cache:"no-store"});
-if(!response.ok)throw new Error("HTTP "+response.status+" dla "+path);
-snapshot=await response.json();
-break;
-}catch(error){lastError=error}
-}
-if(!snapshot)throw lastError||new Error("Brak pliku historii");
-render(snapshot);
-}catch(error){root.innerHTML='<div class="empty">Nie można wczytać historii Leetify.\\n'+esc(error.message||"Błąd połączenia")+'</div>'}
+if(preview){const sample=[{result:"W",map:"MIRAGE",score:"13:8",source:"matchmaking",k:24,d:14,a:5,hs:11,r:7.84,date:"2026-10-24T20:15:00Z"},{result:"W",map:"NUKE",score:"13:10",source:"matchmaking_competitive",k:19,d:16,a:4,hs:8,r:6.36,date:"2026-10-23T18:12:00Z"},{result:"L",map:"INFERNO",score:"9:13",source:"faceit",k:16,d:18,a:3,hs:7,r:5.72,date:"2026-10-22T21:30:00Z"},{result:"W",map:"DUST2",score:"13:7",source:"matchmaking",k:27,d:12,a:7,hs:13,r:8.14,date:"2026-10-21T16:30:00Z"},{result:"T",map:"ANCIENT",score:"12:12",source:"matchmaking_competitive",k:20,d:20,a:6,hs:9,r:6.91,date:"2026-10-20T15:10:00Z"},{result:"W",map:"ANUBIS",score:"13:6",source:"renown",k:21,d:10,a:8,hs:10,r:7.56,date:"2026-10-19T19:10:00Z"}];render({steam64_id:wantedSteam,updated_at:new Date().toISOString(),profile:{name:"kubexik"},matches:sample.slice(0,limit).map((m,i)=>({id:String(i),data_source:m.source,map_name:m.map.toLowerCase(),finished_at:m.date,team_scores:[{team_number:2,score:Number(m.score.split(":")[0])},{team_number:3,score:Number(m.score.split(":")[1])}],stats:[{steam64_id:wantedSteam,name:"kubexik",initial_team_number:2,total_kills:m.k,total_deaths:m.d,total_assists:m.a,total_hs_kills:m.hs,kd_ratio:m.d?m.k/m.d:m.k,leetify_rating:m.r}]}))});const tag=document.createElement("div");tag.className="preview-tag";tag.textContent="DEMO PREVIEW";document.body.appendChild(tag);return}
+try{let snapshot=null,lastError=null;for(const path of ["./matches.json","./docs/matches.json"]){try{const res=await fetch(path+"?ts="+Date.now(),{cache:"no-store"});if(!res.ok)throw new Error("HTTP "+res.status+" dla "+path);snapshot=await res.json();break}catch(e){lastError=e}}if(!snapshot)throw lastError||new Error("Brak pliku historii");render(snapshot)}catch(e){root.innerHTML='<div class="empty">Nie można wczytać historii Leetify.<br>'+esc(e.message||"Błąd połączenia")+'</div>'}
 }
 load();
 })();
-</script>
-</body></html>
+</script></body></html>
