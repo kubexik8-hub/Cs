@@ -110,9 +110,17 @@ render({steam64_id:wantedSteam,updated_at:new Date().toISOString(),profile:{name
 const tag=document.createElement("div");tag.className="preview-tag";tag.textContent="PREVIEW";document.body.appendChild(tag);return;
 }
 try{
-const response=await fetch("./matches.json?ts="+Date.now(),{cache:"no-store"});
-if(!response.ok)throw new Error("Nie można pobrać historii (HTTP "+response.status+").");
-const snapshot=await response.json();
+let snapshot=null;
+let lastError=null;
+for(const path of ["./matches.json","./docs/matches.json"]){
+try{
+const response=await fetch(path+"?ts="+Date.now(),{cache:"no-store"});
+if(!response.ok)throw new Error("HTTP "+response.status+" dla "+path);
+snapshot=await response.json();
+break;
+}catch(error){lastError=error}
+}
+if(!snapshot)throw lastError||new Error("Brak pliku historii");
 render(snapshot);
 }catch(error){root.innerHTML='<div class="empty">Nie można wczytać historii Leetify.\\n'+esc(error.message||"Błąd połączenia")+'</div>'}
 }
