@@ -1,471 +1,53 @@
 <!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0b0812">
-  <title>CS2 Match Center</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #0b0812;
-      --panel: rgba(22,17,32,.88);
-      --panel2: #181222;
-      --line: rgba(255,255,255,.085);
-      --muted: #a49ab5;
-      --text: #f7f3ff;
-      --purple: #a855f7;
-      --pink: #f84982;
-      --green: #5ced89;
-      --red: #ff747e;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(ellipse at 12% 0%,rgba(120,60,190,.2),transparent 34rem),
-        radial-gradient(ellipse at 95% 25%,rgba(248,73,130,.09),transparent 30rem),
-        var(--bg);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-    }
-    button, input { font: inherit; }
-    button { cursor: pointer; }
-    .page { max-width: 1320px; padding: 28px 24px 34px; margin: 0 auto; }
-    .topbar { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:26px; }
-    .brand { display:flex; align-items:center; gap:13px; min-width:0; }
-    .brand-mark {
-      width:44px; height:44px; flex:0 0 44px; display:grid; place-items:center;
-      border-radius:14px; font-size:17px; font-weight:1000; letter-spacing:-1px;
-      background:linear-gradient(140deg,#a855f7,#6d28d9 56%,#f84982);
-      box-shadow:0 9px 30px rgba(168,85,247,.22);
-    }
-    .eyebrow { color:#c3a9f6; font-size:10px; font-weight:900; letter-spacing:2px; text-transform:uppercase; }
-    h1 { margin:4px 0 0; font-size:clamp(23px,4vw,34px); letter-spacing:-1.2px; line-height:1.1; }
-    .top-actions { display:flex; align-items:center; gap:9px; }
-    .btn {
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      min-height:40px; padding:0 14px; border:1px solid var(--line); border-radius:12px;
-      color:#eee5fb; background:rgba(255,255,255,.045); font-size:12px; font-weight:850;
-      transition:transform .15s,border-color .15s,background .15s;
-    }
-    .btn:hover { transform:translateY(-1px); border-color:rgba(168,85,247,.5); background:rgba(168,85,247,.09); }
-    .btn.primary { border:0; background:linear-gradient(100deg,#7c3aed,#a855f7,#c026d3); color:#fff; }
-    .profile {
-      position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1.3fr) minmax(220px,.7fr);
-      gap:20px; padding:25px; border:1px solid var(--line); border-radius:23px;
-      background:linear-gradient(120deg,rgba(28,20,42,.96),rgba(18,14,28,.94));
-      box-shadow:0 18px 55px rgba(0,0,0,.19);
-    }
-    .profile:after { content:""; pointer-events:none; position:absolute; right:-100px; top:-130px; width:300px;height:300px;border-radius:50%;background:rgba(147,51,234,.1);filter:blur(4px); }
-    .profile-main,.profile-side { position:relative; z-index:1; min-width:0; }
-    .profile-topline { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .mode-pill { display:inline-flex; gap:7px; align-items:center; padding:6px 9px; border:1px solid rgba(168,85,247,.25); border-radius:999px; color:#d9bdff; background:rgba(168,85,247,.09); font-size:9px; font-weight:900; letter-spacing:1px; }
-    .dot { width:6px; height:6px; border-radius:50%; background:#5ced89; box-shadow:0 0 9px rgba(92,237,137,.45); }
-    .player-name { margin:14px 0 7px; font-size:clamp(25px,4.5vw,40px); font-weight:950; line-height:1; letter-spacing:-1.2px; overflow-wrap:anywhere; }
-    .subtitle { margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
-    .profile-side { display:flex; flex-direction:column; align-items:flex-end; justify-content:center; text-align:right; }
-    .small-label { color:#897e9c; font-size:9px; font-weight:900; letter-spacing:1.3px; text-transform:uppercase; }
-    .number { margin-top:7px; font-size:clamp(30px,4vw,44px); font-weight:950; letter-spacing:-1.6px; line-height:1; }
-    .number-caption { margin-top:8px; color:var(--muted); font-size:11px; }
-    .filters-area { margin:24px 0 16px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
-    .section-heading { display:flex; flex-direction:column; gap:5px; }
-    h2 { margin:0; font-size:18px; letter-spacing:-.3px; }
-    .section-sub { color:var(--muted); font-size:11px; }
-    .controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
-    .search { position:relative; }
-    .search input {
-      width:210px; max-width:100%; min-height:39px; padding:0 12px 0 34px;
-      border:1px solid var(--line); border-radius:11px; color:#fff; outline:0;
-      background:rgba(255,255,255,.04); font-size:11px;
-    }
-    .search input:focus { border-color:rgba(168,85,247,.6); box-shadow:0 0 0 3px rgba(168,85,247,.09); }
-    .search-icon { position:absolute; left:12px; top:11px; color:#897e9c; font-size:14px; pointer-events:none; }
-    .filters { display:flex; flex-wrap:wrap; gap:6px; }
-    .filter {
-      padding:10px 12px; border:1px solid var(--line); border-radius:10px; color:#bdb3cb;
-      background:rgba(255,255,255,.025); font-size:10px; font-weight:850;
-    }
-    .filter.active { border-color:rgba(168,85,247,.42); color:#fff; background:rgba(168,85,247,.16); }
-    .notice { display:none; margin:15px 0; padding:13px 15px; border:1px solid rgba(248,73,130,.2); border-radius:13px; background:rgba(248,73,130,.07); color:#ffb4cb; font-size:12px; line-height:1.6; white-space:pre-wrap; }
-    .notice.show { display:block; }
-    .notice a { color:#ff8fba; }
-    .results-meta { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:15px 0 12px; color:#8d839d; font-size:10px; }
-    .match-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-    .match {
-      min-width:0; display:grid; grid-template-columns:47px minmax(0,1fr) auto;
-      gap:13px; align-items:center; padding:15px;
-      border:1px solid var(--line); border-radius:16px; background:rgba(23,18,33,.8);
-      transition:transform .15s,border-color .15s,background .15s;
-    }
-    .match:hover { transform:translateY(-1px); border-color:rgba(168,85,247,.3); background:rgba(29,22,42,.94); }
-    .map-icon {
-      width:47px; height:47px; display:grid; place-items:center; border:1px solid rgba(168,85,247,.16);
-      border-radius:13px; background:linear-gradient(145deg,rgba(168,85,247,.16),rgba(248,73,130,.07));
-      color:#d9bdff; font-size:11px; font-weight:1000; text-align:center;
-    }
-    .match-main { min-width:0; }
-    .match-title { display:flex; align-items:center; gap:8px; min-width:0; flex-wrap:wrap; }
-    .map-name { font-size:13px; font-weight:950; letter-spacing:.2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .source-chip { display:inline-flex; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,.05); color:#b4a9c4; font-size:8px; font-weight:900; white-space:nowrap; }
-    .match-date { margin-top:5px; color:#867c95; font-size:10px; }
-    .match-stats { display:flex; flex-wrap:wrap; gap:10px; margin-top:9px; color:#bcb3c9; font-size:10px; }
-    .match-stats b { color:#f2ecfa; font-weight:900; }
-    .score-side { display:flex; flex-direction:column; align-items:flex-end; gap:7px; min-width:68px; }
-    .outcome { font-size:15px; font-weight:1000; letter-spacing:.6px; }
-    .outcome.w { color:var(--green); } .outcome.l { color:var(--red); } .outcome.t { color:#ffd75d; } .outcome.q { color:#a49ab5; }
-    .score { font-size:13px; font-weight:950; color:#f3eef9; white-space:nowrap; }
-    .match-link { display:inline-block; color:var(--pink); font-size:9px; font-weight:900; text-decoration:none; }
-    .match-link:hover { text-decoration:underline; }
-    .empty {
-      grid-column:1/-1; padding:34px 20px; border:1px dashed rgba(255,255,255,.12);
-      border-radius:16px; color:#aaa0b8; text-align:center; font-size:12px; line-height:1.8; white-space:pre-wrap;
-      background:rgba(255,255,255,.018);
-    }
-    .footer { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-top:24px; padding-top:15px; border-top:1px solid var(--line); color:#80768e; font-size:10px; }
-    .leetify { display:flex; align-items:center; justify-content:flex-end; gap:10px; }
-    .leetify img { width:86px; max-height:26px; object-fit:contain; }
-    .leetify a { color:#f84982; font-weight:800; text-decoration:none; }
-    .foot-note { max-width:650px; line-height:1.6; }
-    @media(max-width:760px) {
-      .page { padding:18px 13px 26px; }
-      .topbar { align-items:flex-start; }
-      .top-actions .btn .btn-label { display:none; }
-      .profile { grid-template-columns:1fr; padding:19px; }
-      .profile-side { align-items:flex-start; text-align:left; padding-top:6px; }
-      .number { font-size:30px; }
-      .match-list { grid-template-columns:1fr; }
-      .filters-area { align-items:flex-start; flex-direction:column; }
-      .controls { width:100%; align-items:stretch; flex-direction:column; }
-      .search input { width:100%; }
-      .filters { width:100%; }
-      .filter { flex:1; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0812">
+<title>CS2 Widget Generator</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0812;--panel:#171120;--line:#ffffff14;--text:#f7f1ff;--muted:#9b90aa;--purple:#a855f7;--pink:#f84982}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 12% 0,#642fa533,transparent 34rem),radial-gradient(ellipse at 90% 22%,#f8498219,transparent 30rem),var(--bg);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;color:var(--text)}.wrap{max-width:1180px;margin:auto;padding:28px 22px 38px}.top{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:25px}.brand{display:flex;align-items:center;gap:12px}.mark{width:45px;height:45px;border-radius:14px;background:linear-gradient(135deg,#a855f7,#6d28d9,#f84982);display:grid;place-items:center;font-weight:1000}.eyebrow{font-size:10px;letter-spacing:2px;color:#d2b5ff;font-weight:900}h1{font-size:clamp(25px,4vw,35px);letter-spacing:-1.3px;margin:5px 0 0}.pill{border:1px solid #a855f744;background:#a855f715;padding:8px 10px;border-radius:999px;font-size:10px;color:#dbbdff;font-weight:900}.intro{color:var(--muted);font-size:12px;line-height:1.65;max-width:700px;margin:-8px 0 22px}.main{display:grid;grid-template-columns:minmax(280px,360px) minmax(0,1fr);gap:17px;align-items:start}.panel{background:rgba(23,17,32,.92);border:1px solid var(--line);border-radius:19px;padding:20px;box-shadow:0 20px 60px #0002}.panel h2{font-size:15px;margin:0 0 5px}.desc{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:18px}.field{margin-bottom:17px}.field label{display:block;font-size:10px;font-weight:900;letter-spacing:.8px;color:#d5cadf;margin-bottom:8px}.select,.text-input{width:100%;height:42px;padding:0 11px;border:1px solid var(--line);border-radius:10px;background:#09070e;color:#fff;outline:0;font-size:12px}.select:focus,.text-input:focus{border-color:#a855f799;box-shadow:0 0 0 3px #a855f71a}.color-row{display:flex;gap:8px}.color-btn{width:34px;height:34px;border-radius:10px;border:2px solid transparent;outline:1px solid transparent;cursor:pointer}.color-btn.active{border-color:#fff;outline-color:#a855f7}.toggle-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.toggle{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11px;color:#d6cbdf;background:#ffffff04}.toggle input{accent-color:#a855f7}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:11px;min-height:43px;padding:0 12px;background:linear-gradient(100deg,#7c3aed,#a855f7,#c026d3);color:white;font-weight:900;font-size:12px;cursor:pointer}.btn.secondary{background:#ffffff09;border:1px solid var(--line);margin-top:9px}.preview-panel{padding:20px;min-width:0}.preview-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px}.preview-head h2{margin:0;font-size:15px}.dim{color:var(--muted);font-size:10px}.preview-frame{width:100%;height:260px;display:block;border:1px solid var(--line);border-radius:13px;background-color:#0c0910;background-image:linear-gradient(45deg,#ffffff08 25%,transparent 25%),linear-gradient(-45deg,#ffffff08 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ffffff08 75%),linear-gradient(-45deg,transparent 75%,#ffffff08 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;overflow:hidden}.output{margin-top:17px;padding-top:17px;border-top:1px solid var(--line)}.output-title{font-size:10px;letter-spacing:1px;font-weight:900;color:#d7c7e8;margin-bottom:9px}.urlrow{display:flex;gap:8px}.url{flex:1;min-width:0;padding:12px;border:1px solid var(--line);border-radius:10px;background:#08060c;color:#e9ddf8;font:11px Consolas,monospace;overflow-wrap:anywhere;line-height:1.5}.copy{border:1px solid #a855f766;border-radius:10px;padding:0 13px;color:#e4caff;background:#a855f71a;font-size:11px;font-weight:900;cursor:pointer}.hint{margin-top:10px;color:#8c819a;font-size:10px;line-height:1.6}.notice{margin-top:12px;padding:10px;border-radius:9px;background:#f8498212;border:1px solid #f8498230;color:#ffbbce;font-size:11px;line-height:1.5;display:none}.notice.show{display:block}.badge{display:inline-flex;padding:5px 7px;border-radius:6px;background:#5ced8915;border:1px solid #5ced8930;color:#78f2a0;font-size:9px;font-weight:900}.footer{margin-top:22px;color:#766c82;font-size:10px;line-height:1.6}.footer a{color:#c4a0ff}@media(max-width:800px){.wrap{padding:18px 12px 26px}.main{grid-template-columns:1fr}.top{align-items:flex-start}.pill{display:none}.preview-frame{height:280px}.panel{padding:16px}}
+</style>
 </head>
 <body>
-  <main class="page">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark">CS2</div>
-        <div>
-          <div class="eyebrow">KUBEXIK · MATCH CENTER</div>
-          <h1>Match history</h1>
-        </div>
-      </div>
-      <div class="top-actions">
-        <button class="btn" id="shareBtn" type="button" title="Kopiuj link do strony"><span>↗</span><span class="btn-label">Udostępnij</span></button>
-        <button class="btn primary" id="refreshBtn" type="button"><span>↻</span><span>Odśwież</span></button>
-      </div>
-    </header>
-
-    <section class="profile" aria-label="Profil gracza">
-      <div class="profile-main">
-        <div class="profile-topline">
-          <span class="mode-pill"><span class="dot"></span> HISTORIA MECZÓW</span>
-          <span class="small-label" id="steamLabel">Steam64</span>
-        </div>
-        <div class="player-name" id="playerName">Łączenie z Leetify…</div>
-        <p class="subtitle" id="profileSubtitle">Pobieram mecze ze wszystkich dostępnych trybów.</p>
-      </div>
-      <div class="profile-side">
-        <div class="small-label">Mecze zwrócone przez Leetify</div>
-        <div class="number" id="totalMatches">—</div>
-        <div class="number-caption" id="lastUpdated">Ostatnia aktualizacja —</div>
-      </div>
-    </section>
-
-    <div id="notice" class="notice" role="status"></div>
-
-    <section class="filters-area">
-      <div class="section-heading">
-        <h2>Wszystkie mecze</h2>
-        <div class="section-sub">Premier, Competitive, FACEIT i pozostałe tryby dostępne w Leetify</div>
-      </div>
-      <div class="controls">
-        <label class="search"><span class="search-icon">⌕</span><input id="searchInput" type="search" placeholder="Szukaj mapy lub trybu…" autocomplete="off"></label>
-        <div id="filters" class="filters">
-          <button class="filter active" data-source="all" type="button">Wszystkie</button>
-        </div>
-      </div>
-    </section>
-
-    <div class="results-meta">
-      <span id="visibleCount">Pobieram historię…</span>
-      <span id="rangeInfo"></span>
-    </div>
-
-    <section id="matchList" class="match-list" aria-live="polite">
-      <div class="empty">Łączenie z Leetify API…</div>
-    </section>
-
-    <footer class="footer">
-      <div class="foot-note">Wyniki pochodzą z historii dostępnej w Leetify. Strona nie jest powiązana z Leetify ani przez nią sponsorowana.</div>
-      <div class="leetify">
-        <a href="https://leetify.com/" target="_blank" rel="noopener noreferrer" aria-label="Data Provided by Leetify">
-          <img src="https://raw.githubusercontent.com/hurr1star/BrowserLeetify/main/Leetify%20Badge%20White%20Small.png" alt="Data Provided by Leetify">
-        </a>
-        <a href="https://leetify.com/" target="_blank" rel="noopener noreferrer">Data Provided by Leetify</a>
-      </div>
-    </footer>
-  </main>
-
-  <script>
-    const DEFAULT_STEAM64 = "76561199436045966";
-    let profile = null;
-    let allMatches = [];
-    let selectedSource = "all";
-    let lastLoadedAt = null;
-    let loading = false;
-
-    let steamId = DEFAULT_STEAM64;
-
-    function el(id) { return document.getElementById(id); }
-
-    function escapeHtml(value) {
-      return String(value === null || value === undefined ? "" : value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function sourceLabel(source) {
-      const key = String(source || "").toLowerCase();
-      const labels = {
-        matchmaking: "Premier / Matchmaking",
-        matchmaking_competitive: "Competitive",
-        faceit: "FACEIT",
-        renown: "Renown",
-        hltv: "HLTV",
-        esportal: "Esportal",
-        gamersclub: "Gamers Club"
-      };
-      if (labels[key]) return labels[key];
-      return key ? key.replaceAll("_", " ").replace(/\b\w/g, ch => ch.toUpperCase()) : "Tryb";
-    }
-
-    function modeShort(source) {
-      const key = String(source || "").toLowerCase();
-      if (key === "matchmaking") return "MM";
-      if (key === "matchmaking_competitive") return "COMP";
-      if (key === "faceit") return "FACEIT";
-      if (key === "renown") return "REN";
-      return sourceLabel(key).split(" ").map(part => part[0]).join("").slice(0,5).toUpperCase() || "CS2";
-    }
-
-    function dateLabel(value) {
-      if (!value) return "Data nieznana";
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return "Data nieznana";
-      return date.toLocaleString("pl-PL", {
-        day: "2-digit", month: "short", year: "numeric",
-        hour: "2-digit", minute: "2-digit"
-      });
-    }
-
-    function getPlayerStats(match) {
-      const stats = Array.isArray(match && match.stats) ? match.stats : [];
-      return stats.find(item => String(item && item.steam64_id || "") === steamId) || null;
-    }
-
-    function ownScore(match, playerStats) {
-      const teams = Array.isArray(match && match.team_scores) ? match.team_scores : [];
-      const teamNo = Number(playerStats && playerStats.initial_team_number);
-      const mine = teams.find(team => Number(team.team_number) === teamNo);
-      const enemy = teams.find(team => Number(team.team_number) !== teamNo);
-      if (mine && enemy) {
-        return { own: Number(mine.score), enemy: Number(enemy.score) };
-      }
-      const won = playerStats && playerStats.rounds_won;
-      const lost = playerStats && playerStats.rounds_lost;
-      if (won !== undefined && lost !== undefined) {
-        return { own: Number(won), enemy: Number(lost) };
-      }
-      return { own: null, enemy: null };
-    }
-
-    function getOutcome(match, stats, score) {
-      const raw = String(match && (match.outcome || match.result) || "").toLowerCase();
-      if (raw === "win" || raw === "won" || raw === "w") return "W";
-      if (raw === "loss" || raw === "lost" || raw === "l") return "L";
-      if (raw === "tie" || raw === "draw" || raw === "t") return "T";
-      if (score.own !== null && score.enemy !== null) {
-        if (score.own > score.enemy) return "W";
-        if (score.own < score.enemy) return "L";
-        return "T";
-      }
-      return "—";
-    }
-
-    function normalizeMatches(payload) {
-      const matches = Array.isArray(payload) ? payload :
-        Array.isArray(payload && payload.matches) ? payload.matches :
-        Array.isArray(payload && payload.data) ? payload.data : [];
-
-      return matches.map(match => {
-        const stats = getPlayerStats(match);
-        if (!stats) return null;
-        const score = ownScore(match, stats);
-        const kills = Number(stats.total_kills === undefined ? 0 : stats.total_kills);
-        const deaths = Number(stats.total_deaths === undefined ? 0 : stats.total_deaths);
-        const kd = stats.kd_ratio === undefined ? null : Number(stats.kd_ratio);
-        return {
-          id: String(match.id || ""),
-          source: String(match.data_source || "unknown"),
-          map: String(match.map_name || "Unknown map").replace(/^de_/, ""),
-          date: match.finished_at || "",
-          score: score.own === null ? "—" : score.own + ":" + score.enemy,
-          result: getOutcome(match, stats, score),
-          kills,
-          deaths,
-          assists: Number(stats.total_assists === undefined ? 0 : stats.total_assists),
-          headshots: Number(stats.total_hs_kills === undefined ? 0 : stats.total_hs_kills),
-          kd,
-          leetifyRating: stats.leetify_rating === undefined ? null : stats.leetify_rating
-        };
-      }).filter(Boolean).sort((a, b) => {
-        const ad = new Date(a.date).getTime() || 0;
-        const bd = new Date(b.date).getTime() || 0;
-        return bd - ad;
-      });
-    }
-
-
-    function showNotice(text) {
-      const box = el("notice");
-      box.textContent = text;
-      box.classList.toggle("show", Boolean(text));
-    }
-
-    function buildFilters() {
-      const counts = new Map();
-      allMatches.forEach(match => counts.set(match.source, (counts.get(match.source) || 0) + 1));
-      const entries = Array.from(counts.entries()).sort((a,b) => b[1]-a[1]);
-      const html = ['<button class="filter' + (selectedSource === "all" ? " active" : "") + '" data-source="all" type="button">Wszystkie <span>' + allMatches.length + '</span></button>'];
-      entries.forEach(entry => {
-        const source = entry[0];
-        html.push('<button class="filter' + (selectedSource === source ? " active" : "") + '" data-source="' +
-          escapeHtml(source) + '" type="button">' + escapeHtml(sourceLabel(source)) + ' <span>' + entry[1] + '</span></button>');
-      });
-      el("filters").innerHTML = html.join("");
-      el("filters").querySelectorAll("[data-source]").forEach(button => {
-        button.addEventListener("click", () => {
-          selectedSource = button.getAttribute("data-source");
-          buildFilters();
-          renderMatches();
-        });
-      });
-    }
-
-    function renderMatches() {
-      const searchText = el("searchInput").value.trim().toLowerCase();
-      const shown = allMatches.filter(match => {
-        const sourceOk = selectedSource === "all" || match.source === selectedSource;
-        const text = (match.map + " " + sourceLabel(match.source) + " " + match.result + " " + match.score).toLowerCase();
-        return sourceOk && (!searchText || text.includes(searchText));
-      });
-
-      el("visibleCount").textContent = "Wyświetlono " + shown.length + " z " + allMatches.length + " meczów";
-      el("rangeInfo").textContent = lastLoadedAt ? "Aktualizacja: " + lastLoadedAt.toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"}) : "";
-
-      if (!shown.length) {
-        el("matchList").innerHTML = '<div class="empty">Brak meczów pasujących do wybranego filtra lub wyszukiwania.</div>';
-        return;
-      }
-
-      el("matchList").innerHTML = shown.map(match => {
-        const outcomeClass = match.result === "W" ? "w" : match.result === "L" ? "l" : match.result === "T" ? "t" : "q";
-        const kdText = match.kd === null || !Number.isFinite(match.kd) ? "—" : match.kd.toFixed(2);
-        const ratingText = match.leetifyRating === null || !Number.isFinite(Number(match.leetifyRating))
-          ? "" : '<span>Leetify <b>' + escapeHtml(Number(match.leetifyRating).toFixed(2)) + '</b></span>';
-        const matchUrl = match.id ? 'https://leetify.com/app/match-details/' + encodeURIComponent(match.id) : "";
-        return '<article class="match">' +
-          '<div class="map-icon">' + escapeHtml(modeShort(match.source)) + '</div>' +
-          '<div class="match-main">' +
-            '<div class="match-title"><span class="map-name">' + escapeHtml(match.map) + '</span><span class="source-chip">' + escapeHtml(sourceLabel(match.source)) + '</span></div>' +
-            '<div class="match-date">' + escapeHtml(dateLabel(match.date)) + '</div>' +
-            '<div class="match-stats"><span>K <b>' + escapeHtml(match.kills) + '</b></span><span>D <b>' + escapeHtml(match.deaths) + '</b></span><span>A <b>' + escapeHtml(match.assists) + '</b></span><span>K/D <b>' + escapeHtml(kdText) + '</b></span>' + ratingText + '</div>' +
-            (matchUrl ? '<a class="match-link" href="' + escapeHtml(matchUrl) + '" target="_blank" rel="noopener noreferrer">View on Leetify ↗</a>' : '') +
-          '</div>' +
-          '<div class="score-side"><div class="outcome ' + outcomeClass + '">' + escapeHtml(match.result) + '</div><div class="score">' + escapeHtml(match.score) + '</div></div>' +
-        '</article>';
-      }).join("");
-    }
-
-    async function loadHistory() {
-      if (loading) return;
-      loading = true;
-      el("refreshBtn").disabled = true;
-      el("refreshBtn").innerHTML = "<span>↻</span><span>Ładowanie…</span>";
-      showNotice("");
-
-      try {
-        const response = await fetch("./matches.json?ts=" + Date.now(), { cache: "no-store" });
-        let snapshot;
-        try {
-          snapshot = await response.json();
-        } catch {
-          throw new Error("Nie można odczytać pliku historii. Poczekaj na pierwszą aktualizację GitHub Actions.");
-        }
-        if (!response.ok) {
-          throw new Error("Nie udało się pobrać opublikowanej historii (HTTP " + response.status + ").");
-        }
-
-        steamId = String(snapshot.steam64_id || DEFAULT_STEAM64);
-        profile = snapshot.profile || {};
-        allMatches = normalizeMatches(snapshot.matches || []);
-        lastLoadedAt = snapshot.updated_at ? new Date(snapshot.updated_at) : null;
-
-        el("steamLabel").textContent = "STEAM64 · " + steamId;
-        el("playerName").textContent = profile.name || "CS2 Player";
-        el("totalMatches").textContent = String(allMatches.length);
-        el("profileSubtitle").textContent = "Historia z Leetify · wszystkie dostępne źródła i tryby";
-        el("lastUpdated").textContent = lastLoadedAt && !Number.isNaN(lastLoadedAt.getTime())
-          ? "Zaktualizowano " + lastLoadedAt.toLocaleString("pl-PL", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"})
-          : "Oczekiwanie na pierwszą synchronizację";
-
-        if (snapshot.historyError) {
-          showNotice(snapshot.historyError);
-        } else if (!allMatches.length) {
-          showNotice("Brak meczów w zapisanej historii. Sprawdź, czy Leetify przetwarza mecze dla tego profilu.");
-        }
-
-        buildFilters();
-        renderMatches();
-        el("rangeInfo").textContent = "Źródło: Leetify · " + (snapshot.updated_at ? "statyczna kopia" : "oczekuje na synchronizację");
-      } catch (error) {
-        const message = (error && error.message) ? error.message : "Nie udało się wczytać historii.";
-        showNotice(message);
-        el("matchList").innerHTML = '<div class="empty">' + escapeHtml(message) + '</div>';
-        el("playerName").textContent = "Historia niedostępna";
-        el("totalMatches").textContent = "—";
-        el("visibleCount").textContent = "Nie udało się wczytać historii";
-      } finally {
-        loading = false;
-        el("refreshBtn").disabled = false;
-        el("refreshBtn").innerHTML = "<span>↻</span><span>Odśwież</span>";
-      }
-    }
-
-    el("refreshBtn").addEventListener("click", loadHistory);
-    el("searchInput").addEventListener("input", renderMatches);
-    el("shareBtn").addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        el("shareBtn").innerHTML = "<span>✓</span><span class='btn-label'>Skopiowano</span>";
-        setTimeout(() => {
-          el("shareBtn").innerHTML = "<span>↗</span><span class='btn-label'>Udostępnij</span>";
-        }, 1600);
-      } catch {
-        showNotice("Skopiuj adres strony z paska przeglądarki.");
-      }
-    });
-
-    loadHistory();
-    setInterval(loadHistory, 300000);
-  </script>
-</body>
-</html>
+<div class="wrap">
+<header class="top"><div class="brand"><div class="mark">CS2</div><div><div class="eyebrow">KUBEXIK · OBS TOOLS</div><h1>Widget Generator</h1></div></div><div class="pill">LEETIFY MATCH DATA</div></header>
+<p class="intro">Skonfiguruj nakładkę CS2, podejrzyj wygląd i wygeneruj osobny adres do OBS Browser Source. Link prowadzi bezpośrednio do przezroczystego widgetu — bez menu strony i bez programu lokalnego.</p>
+<div class="main">
+<section class="panel">
+<h2>Wygląd widgetu</h2><div class="desc">Zmiany zobaczysz od razu w podglądzie.</div>
+<div class="field"><label for="layout">UKŁAD</label><select id="layout" class="select"><option value="stats">Kompaktowe statystyki</option><option value="full">Statystyki + ostatnie mecze</option><option value="history">Lista ostatnich meczów</option></select></div>
+<div class="field"><label>KOLOR AKCENTU</label><div class="color-row" id="colors"><button type="button" class="color-btn active" data-color="#a855f7" title="Fioletowy" style="background:#a855f7"></button><button type="button" class="color-btn" data-color="#f84982" title="Różowy" style="background:#f84982"></button><button type="button" class="color-btn" data-color="#22d3ee" title="Błękitny" style="background:#22d3ee"></button><button type="button" class="color-btn" data-color="#22c55e" title="Zielony" style="background:#22c55e"></button><button type="button" class="color-btn" data-color="#f59e0b" title="Pomarańczowy" style="background:#f59e0b"></button></div></div>
+<div class="field"><label for="background">TŁO</label><select id="background" class="select"><option value="transparent">Przezroczyste (OBS)</option><option value="solid">Czarne / fioletowe</option></select></div>
+<div class="field"><label for="limit">ILE OSTATNICH MECZÓW</label><select id="limit" class="select"><option value="5">5 meczów</option><option value="10" selected>10 meczów</option><option value="15">15 meczów</option><option value="20">20 meczów</option><option value="30">30 meczów</option></select></div>
+<div class="field"><label>POKAŻ STATYSTYKI</label><div class="toggle-list"><label class="toggle"><input type="checkbox" data-show="kd" checked>K/D</label><label class="toggle"><input type="checkbox" data-show="winrate" checked>Win rate</label><label class="toggle"><input type="checkbox" data-show="avg" checked>Śr. zabójstw</label><label class="toggle"><input type="checkbox" data-show="rating" checked>Rating Leetify</label><label class="toggle"><input type="checkbox" data-show="form" checked>Seria W/L</label><label class="toggle"><input type="checkbox" data-show="date" checked>Data meczów</label></div></div>
+<div class="field"><label for="steam">PROFIL STEAM64</label><input id="steam" class="text-input" value="76561199436045966" inputmode="numeric" maxlength="17" autocomplete="off"><div class="hint">Źródłem danych jest profil skonfigurowany w synchronizacji GitHub Actions. Zmiana ID w linku nie utworzy automatycznie historii innego gracza.</div></div>
+<button id="generate" class="btn" type="button">⤴ GENERUJ LINK DO OBS</button>
+<div id="notice" class="notice"></div>
+</section>
+<section class="panel preview-panel">
+<div class="preview-head"><div><h2>Podgląd widgetu</h2><div class="dim">Przykładowe dane · nie są prawdziwą historią meczów</div></div><span class="badge">LIVE PREVIEW</span></div>
+<iframe id="preview" class="preview-frame" title="Podgląd widgetu" loading="eager" sandbox="allow-scripts allow-same-origin"></iframe>
+<div class="output"><div class="output-title">TWÓJ LINK DO OBS</div><div class="urlrow"><div id="url" class="url">Kliknij „Generuj link do OBS”.</div><button id="copy" class="copy" type="button">KOPIUJ</button></div><div class="hint">OBS → Źródła → Przeglądarka → URL. Zalecany rozmiar: 900 × 240 dla statystyk albo 1000 × 420 dla historii. Pozostaw to pole bez zmian — link ma przezroczyste tło, jeśli tak wybrano powyżej.</div></div>
+</section>
+</div>
+<div class="footer">Dane dostarcza Leetify. Ta strona nie jest powiązana z Leetify ani przez nią sponsorowana. <a href="https://leetify.com/" target="_blank" rel="noopener noreferrer">Leetify</a> · <a href="https://github.com/kubexik8-hub/Cs" target="_blank" rel="noopener noreferrer">Kod na GitHub</a></div>
+</div>
+<script>
+const BASE=location.href.replace(/index\.html(?:\?.*)?$/,"");
+const $=id=>document.getElementById(id);
+let accent="#a855f7";
+function selectedShows(){return [...document.querySelectorAll("[data-show]:checked")].map(x=>x.dataset.show)}
+function options(){const id=$("steam").value.trim();return {steam64_id:id,layout:$("layout").value,accent,bg:$("background").value,limit:$("limit").value,show:selectedShows().join(",")}}
+function widgetUrl(preview){const p=options();const q=new URLSearchParams(p);if(preview)q.set("preview","1");return BASE+"widget.html?"+q.toString()}
+function refreshPreview(){const q=new URLSearchParams(options());q.set("preview","1");$("preview").src=BASE+"widget.html?"+q.toString()}
+function generate(){const id=$("steam").value.trim();if(!/^\d{17}$/.test(id)){$("notice").textContent="Steam64 ID musi mieć dokładnie 17 cyfr.";$("notice").classList.add("show");return}if(id!=="76561199436045966"){$("notice").textContent="Aktualna synchronizacja GitHub Actions jest skonfigurowana dla Steam64 ID 76561199436045966. Aby widget wyświetlał inny profil, trzeba zmienić STEAM64_ID w workflow GitHub.";$("notice").classList.add("show");}else{$("notice").classList.remove("show")}const url=widgetUrl(false);$("url").textContent=url;refreshPreview()}
+$("colors").querySelectorAll("[data-color]").forEach(b=>b.addEventListener("click",()=>{accent=b.dataset.color;$("colors").querySelectorAll(".color-btn").forEach(x=>x.classList.toggle("active",x===b));refreshPreview();if($("url").textContent.startsWith("https://"))generate()}));
+["layout","background","limit","steam"].forEach(id=>$(id).addEventListener("change",()=>{refreshPreview();if($("url").textContent.startsWith("https://"))generate()}));
+document.querySelectorAll("[data-show]").forEach(x=>x.addEventListener("change",()=>{refreshPreview();if($("url").textContent.startsWith("https://"))generate()}));
+$("generate").addEventListener("click",generate);
+$("copy").addEventListener("click",async()=>{const url=$("url").textContent;if(!url.startsWith("https://")){generate();return}try{await navigator.clipboard.writeText(url);$("copy").textContent="SKOPIOWANO";setTimeout(()=>$("copy").textContent="KOPIUJ",1500)}catch{$("notice").textContent="Nie udało się skopiować automatycznie. Zaznacz link i skopiuj go ręcznie.";$("notice").classList.add("show")}});
+refreshPreview();
+</script>
+</body></html>
