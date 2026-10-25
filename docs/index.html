@@ -213,15 +213,13 @@
 
   <script>
     const DEFAULT_STEAM64 = "76561199436045966";
-    const API_BASE = "https://api-public.cs-prod.leetify.com";
     let profile = null;
     let allMatches = [];
     let selectedSource = "all";
     let lastLoadedAt = null;
     let loading = false;
 
-    const query = new URLSearchParams(window.location.search);
-    const steamId = query.get("steam64_id") || DEFAULT_STEAM64;
+    let steamId = DEFAULT_STEAM64;
 
     function el(id) { return document.getElementById(id); }
 
@@ -335,26 +333,6 @@
       });
     }
 
-    async function apiGet(path) {
-      const response = await fetch(API_BASE + path, {
-        method: "GET",
-        headers: { "Accept": "application/json" },
-        cache: "no-store"
-      });
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error("Leetify zwróciło odpowiedź, której nie da się odczytać.");
-      }
-      if (!response.ok) {
-        if (response.status === 401) throw new Error("Leetify odmówiło dostępu (HTTP 401).");
-        if (response.status === 403 || response.status === 404) throw new Error("Profil jest niedostępny. Sprawdź, czy masz konto Leetify połączone ze Steam.");
-        if (response.status === 429) throw new Error("Leetify ograniczyło liczbę zapytań (HTTP 429). Odczekaj chwilę.");
-        throw new Error("Leetify API zwróciło błąd HTTP " + response.status + ".");
-      }
-      return data;
-    }
 
     function showNotice(text) {
       const box = el("notice");
@@ -421,50 +399,50 @@
       if (loading) return;
       loading = true;
       el("refreshBtn").disabled = true;
-      el("refreshBtn").innerHTML = "<span>↻</span><span>Pobieram…</span>";
+      el("refreshBtn").innerHTML = "<span>↻</span><span>Ładowanie…</span>";
       showNotice("");
 
-      if (!/^\d{17}$/.test(steamId)) {
-        showNotice("Brak poprawnego Steam64 ID. Otwórz stronę z parametrem ?steam64_id=TWÓJ_STEAM64_ID.");
-        loading = false;
-        el("refreshBtn").disabled = false;
-        el("refreshBtn").innerHTML = "<span>↻</span><span>Odśwież</span>";
-        return;
-      }
-
-      el("steamLabel").textContent = "STEAM64 · " + steamId;
-      const queryString = new URLSearchParams({ steam64_id: steamId }).toString();
-
       try {
-        const results = await Promise.all([
-          apiGet("/v3/profile?" + queryString),
-          apiGet("/v3/profile/matches?" + queryString)
-        ]);
-        profile = results[0];
-        allMatches = normalizeMatches(results[1]);
-        lastLoadedAt = new Date();
+        const response = await fetch("./matches.json?ts=" + Date.now(), { cache: "no-store" });
+        let snapshot;
+        try {
+          snapshot = await response.json();
+        } catch {
+          throw new Error("Nie można odczytać pliku historii. Poczekaj na pierwszą aktualizację GitHub Actions.");
+        }
+        if (!response.ok) {
+          throw new Error("Nie udało się pobrać opublikowanej historii (HTTP " + response.status + ").");
+        }
 
+        steamId = String(snapshot.steam64_id || DEFAULT_STEAM64);
+        profile = snapshot.profile || {};
+        allMatches = normalizeMatches(snapshot.matches || []);
+        lastLoadedAt = snapshot.updated_at ? new Date(snapshot.updated_at) : null;
+
+        el("steamLabel").textContent = "STEAM64 · " + steamId;
         el("playerName").textContent = profile.name || "CS2 Player";
         el("totalMatches").textContent = String(allMatches.length);
         el("profileSubtitle").textContent = "Historia z Leetify · wszystkie dostępne źródła i tryby";
-        if (profile.privacy_mode === "private") {
-          showNotice("Profil Leetify ma ograniczoną widoczność, więc API może nie zwracać wszystkich danych.");
+        el("lastUpdated").textContent = lastLoadedAt && !Number.isNaN(lastLoadedAt.getTime())
+          ? "Zaktualizowano " + lastLoadedAt.toLocaleString("pl-PL", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"})
+          : "Oczekiwanie na pierwszą synchronizację";
+
+        if (snapshot.historyError) {
+          showNotice(snapshot.historyError);
         } else if (!allMatches.length) {
-          showNotice("Leetify nie zwróciło meczów dla tego profilu. Upewnij się, że konto Leetify jest połączone ze Steam i mecze zostały przetworzone.");
+          showNotice("Brak meczów w zapisanej historii. Sprawdź, czy Leetify przetwarza mecze dla tego profilu.");
         }
 
         buildFilters();
         renderMatches();
+        el("rangeInfo").textContent = "Źródło: Leetify · " + (snapshot.updated_at ? "statyczna kopia" : "oczekuje na synchronizację");
       } catch (error) {
-        const message = (error && error.message) ? error.message : "Nie udało się połączyć z Leetify API.";
-        const corsHint = message.toLowerCase().includes("failed to fetch") || message.toLowerCase().includes("fetch")
-          ? "\n\nJeśli otwierasz tę stronę z GitHub Pages i przeglądarka zgłasza CORS, Leetify nie pozwala na bezpośrednie zapytania z tej strony. Wtedy statyczny GitHub Pages nie wystarczy bez pośredniego backendu."
-          : "";
-        showNotice(message + corsHint);
-        el("matchList").innerHTML = '<div class="empty">' + escapeHtml(message + corsHint) + '</div>';
+        const message = (error && error.message) ? error.message : "Nie udało się wczytać historii.";
+        showNotice(message);
+        el("matchList").innerHTML = '<div class="empty">' + escapeHtml(message) + '</div>';
         el("playerName").textContent = "Historia niedostępna";
         el("totalMatches").textContent = "—";
-        el("visibleCount").textContent = "Nie udało się wczytać meczów";
+        el("visibleCount").textContent = "Nie udało się wczytać historii";
       } finally {
         loading = false;
         el("refreshBtn").disabled = false;
