@@ -2,6 +2,12 @@ name: Refresh CS2 history from Leetify
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - ".github/workflows/refresh-leetify-history.yml"
   schedule:
     - cron: "17 * * * *"
 
