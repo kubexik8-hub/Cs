@@ -434,6 +434,8 @@ function processGsi(widget, incoming) {
   };
 }
 
+const LEETIFY_HISTORY_CACHE = new Map();
+
 async function fetchLeetifyJson(path, headers) {
   let response;
 
@@ -480,8 +482,13 @@ async function fetchLeetifyJson(path, headers) {
 async function fetchLeetifyMatches(widget) {
   const steamId = String(widget.steamId || "").trim();
 
-  if (!/^\\d{17}$/.test(steamId)) {
+  if (!/^\d{17}$/.test(steamId)) {
     throw new Error("Widget nie ma poprawnego Steam64 ID.");
+  }
+
+  const cached = LEETIFY_HISTORY_CACHE.get(steamId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data;
   }
 
   const headers = {
@@ -584,11 +591,18 @@ async function fetchLeetifyMatches(widget) {
     historyError = "Leetify nie zwróciło jeszcze żadnych przetworzonych meczów Competitive dla tego profilu.";
   }
 
-  return {
+  const result = {
     playerName: profile?.name || matches[0]?.playerName || "",
     matches,
     historyError
   };
+
+  LEETIFY_HISTORY_CACHE.set(steamId, {
+    expiresAt: Date.now() + 5 * 60 * 1000,
+    data: result
+  });
+
+  return result;
 }
 
 function obsPage(token) {
