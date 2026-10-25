@@ -121,7 +121,11 @@ jobs:
               profile: {
                 name: String(profile.name || ""),
                 privacy_mode: String(profile.privacy_mode || "unknown"),
-                total_matches: Number(profile.total_matches || matches.length)
+                total_matches: Number(profile.total_matches || matches.length),
+                winrate: profile.winrate == null ? null : Number(profile.winrate),
+                ranks: profile.ranks || {},
+                rating: profile.rating || {},
+                stats: profile.stats || {}
               },
               matches,
               historyError: matches.length ? "" :
